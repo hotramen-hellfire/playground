@@ -13,9 +13,9 @@ int main(int argc, char *argv[])
     for (i = 0; i < 1000000; i++)
     {
       gettimeofday(&tv, NULL);
-      if (tv.tv_usec == 0)
-        printf("%lu sec, %lu usec\n", tv.tv_sec, tv.tv_usec);
+      printf("%lu sec, %lu usec\n", tv.tv_sec, tv.tv_usec);
     }
     count++;
+    printf("round %d complete\n", count);
   }
 }
