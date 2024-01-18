@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     {
         // parent block
         int wait_status = wait(NULL);
-        printf("\n----------------------E N D----------------------\n");
+        printf("----------------------E N D----------------------\n");
         exit(0);
     }
     return 0;
