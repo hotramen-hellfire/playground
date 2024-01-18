@@ -2,24 +2,33 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdlib.h>
-int main()
+#include <string.h>
+int main(int argc, char *argv[])
 {
-    int proc = fork();
-    if (proc < 0)
+    printf("----------------------H E L L O----------------------\n");
+    int fork_u = fork();
+    if (fork_u < 0)
     {
-        printf("fork failed :(\n");
+        printf("%d:sorry fork failed :(\n", getpid());
         exit(-1);
     }
-    else if (proc == 0)
+    else if (fork_u == 0)
     {
-        printf("I am the new child, meri pid: %d\n", getpid());
+        // children block
+        // for (int i = 0; i < argc; i++)
+        // {
+        //     printf("%s\n", argv[i]);
+        // }
+        execvp(argv[1], argv + 1);
+        // printf("%d: I am the kid!!\n", getpid());
         exit(0);
     }
     else
     {
-        int wait_stat = wait(NULL);
-        printf("mAI ISKA bAAP huu, meri pid %d hai, mene apne bete pid: %d ko maar dala hai\n", getpid(), wait_stat);
-        // exit(0);
+        // parent block
+        int wait_status = wait(NULL);
+        printf("\n----------------------E N D----------------------\n");
+        exit(0);
     }
     return 0;
 }
