@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <sys/types.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h> // EXIT_SUCCESS, EXIT_FAILURE
 #include <sys/wait.h>
 #include <string.h>
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -17,11 +17,21 @@
 #define MAX_INPUT_SIZE 1024
 #define MAX_TOKEN_SIZE 64
 #define MAX_NUM_TOKENS 64
+#define MAX_BG_PROCS 64
 
 /* Splits the string by space and returns the array of tokens
  *
  */
-char **tokenize(char *line)
+
+struct bg_proc
+{
+	char name[100];
+	int pid;
+	int is_running;
+	// char status[100];
+};
+
+char **tokenize(char *line, int *bgFlag)
 {
 	char **tokens = (char **)malloc(MAX_NUM_TOKENS * sizeof(char *));
 	char *token = (char *)malloc(MAX_TOKEN_SIZE * sizeof(char));
@@ -37,8 +47,13 @@ char **tokenize(char *line)
 			token[tokenIndex] = '\0';
 			if (tokenIndex != 0)
 			{
-				tokens[tokenNo] = (char *)malloc(MAX_TOKEN_SIZE * sizeof(char));
-				strcpy(tokens[tokenNo++], token);
+				if (strcmp(token, "&") == 0)
+					*bgFlag = 1;
+				else
+				{
+					tokens[tokenNo] = (char *)malloc(MAX_TOKEN_SIZE * sizeof(char));
+					strcpy(tokens[tokenNo++], token);
+				}
 				tokenIndex = 0;
 			}
 		}
@@ -53,10 +68,69 @@ char **tokenize(char *line)
 	return tokens;
 }
 
+void show_jobs(struct bg_proc *bg_procs)
+{
+	int is_job = -1;
+	for (int i = 0; i < MAX_BG_PROCS; i++)
+	{
+		char status[100];
+		strcpy(status, "running");
+		if (bg_procs[i].is_running < 1)
+		{
+			strcpy(status, "zombie");
+		}
+		if (bg_procs[i].pid > 0)
+		{
+			if (is_job < 0)
+			{
+				printf(BOLD "PROC_NAME     PROC_PID    PROC_STATUS\n");
+				is_job = 1;
+			}
+			if (bg_procs[i].is_running)
+				printf(ANSI_COLOR_GREEN "   %s            %d      %s\n", bg_procs[i].name, bg_procs[i].pid, status);
+			else
+				printf(ANSI_COLOR_RED "   %s            %d      %s\n", bg_procs[i].name, bg_procs[i].pid, status);
+		}
+	}
+	if (is_job < 0)
+	{
+		printf(ANSI_COLOR_GREEN BOLD "No Background Process. . .\n");
+	}
+}
+
+void add_proc(struct bg_proc *bg_procs, int pid, int is_running, char *name)
+{
+	for (int i = 0; i < MAX_BG_PROCS; i++)
+	{
+		if (bg_procs[i].pid < 0)
+		{
+			bg_procs[i].pid = pid;
+			bg_procs[i].is_running = is_running;
+			strcpy(bg_procs[i].name, name);
+			return;
+		}
+	}
+	printf(ANSI_COLOR_RED BOLD "P-TABLE FULL!!");
+}
+
+void init_jobs(struct bg_proc *bg_procs)
+{
+	for (int i = 0; i < MAX_BG_PROCS; i++)
+	{
+		strcpy(bg_procs[i].name, "tomb");
+		bg_procs[i].is_running = 0;
+		bg_procs[i].pid = -1;
+	}
+}
+
 int main(int argc, char *argv[])
 {
-	system("clear");
+	// system("clear");
+	struct bg_proc bg_procs[MAX_BG_PROCS];
+	init_jobs(bg_procs);
+	// show_jobs(bg_procs);
 	char line[MAX_INPUT_SIZE];
+	char exitF[1000];
 	char **tokens;
 	int i;
 	char username[1000];
@@ -64,12 +138,10 @@ int main(int argc, char *argv[])
 	printf(ANSI_COLOR_GREEN BOLD "---------------------------------------------------------G R E E T I N G S-㉿\n" ANSI_COLOR_RESET);
 	printf(ANSI_COLOR_GREEN BOLD "-----------------------Hi %s, nice to see you!!\n" ANSI_COLOR_RESET, username);
 	const char *home = getenv("HOME");
-	// if (s)
-	// 	printf("%s\n", s);
-	// else
-	// 	printf("envvar notfound\n");
 	while (1)
 	{
+		printf("\n");
+		int bgFlag = 0;
 		char cwd[1000];
 		char add[1000];
 		if (getcwd(cwd, sizeof(cwd)) == NULL)
@@ -123,14 +195,17 @@ int main(int argc, char *argv[])
 		printf(ANSI_COLOR_GREEN "} \n" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_GREEN "└─🗲" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_GREEN BOLD "🗲 " ANSI_COLOR_RESET);
+
+		// style input
+		printf(BOLD "");
+
+		// input
 		scanf("%[^\n]", line);
 		getchar();
-		// printf("Command entered: %s (remove this debug output later)\n", line);
-		/* END: TAKING INPUT */
 		if (strlen(line) == 0)
 			continue;
 		line[strlen(line)] = '\n'; // terminate with new line
-		tokens = tokenize(line);
+		tokens = tokenize(line, &bgFlag);
 		if (strcmp(tokens[0], "exit") == 0)
 		{
 			for (i = 0; tokens[i] != NULL; i++)
@@ -138,7 +213,7 @@ int main(int argc, char *argv[])
 				free(tokens[i]);
 			}
 			free(tokens);
-			printf(ANSI_COLOR_GREEN BOLD "---------------------------------------------------------------------B Y E-㉿\n" ANSI_COLOR_RESET);
+			printf(ANSI_COLOR_GREEN BOLD "\n---------------------------------------------------------------------B Y E-㉿\n" ANSI_COLOR_RESET);
 			return 0;
 		}
 		else
@@ -170,21 +245,56 @@ int main(int argc, char *argv[])
 					ret = chdir(home);
 				}
 				if (ret)
-					printf(ANSI_COLOR_RED "eww, err: bad address!!" ANSI_COLOR_RESET "\n");
+					sprintf(exitF, ANSI_COLOR_RED BOLD "[%d] eww, error!!", EXIT_FAILURE);
+				perror(("%s", exitF));
+			}
+			else if (strcmp("jobs", tokens[0]) == 0)
+			{
+				show_jobs(bg_procs);
 			}
 			else
 			{
-				int fork_u = fork();
-				if (fork_u == 0)
+
+				if (bgFlag > 0)
 				{
-					// printf("--service started\n");
-					execvp(tokens[0], tokens);
-					printf(ANSI_COLOR_RED "eww, err!!" ANSI_COLOR_RESET "\n");
-					exit(0);
+					int fork_u = fork();
+					if (fork_u == 0)
+					{
+						execvp(tokens[0], tokens);
+						sprintf(exitF, ANSI_COLOR_RED BOLD "[%d] eww, error!!", EXIT_FAILURE);
+						perror(("%s", exitF));
+						exit(-1);
+					}
+					else
+					{
+						int status;
+						sleep(1);
+						int stat = waitpid(fork_u, &status, WNOHANG);
+						printf(ANSI_COLOR_BLUE "Process Spawned, PID[%d]", fork_u);
+						if (stat > 0)
+						{
+							add_proc(bg_procs, fork_u, 0, tokens[0]);
+						}
+						else
+						{
+							add_proc(bg_procs, fork_u, 1, tokens[0]);
+						}
+					}
 				}
 				else
 				{
-					wait(NULL);
+					int fork_u = fork();
+					if (fork_u == 0)
+					{
+						execvp(tokens[0], tokens);
+						sprintf(exitF, ANSI_COLOR_RED BOLD "[%d] eww, error!!", EXIT_FAILURE);
+						perror(("%s", exitF));
+						exit(-1);
+					}
+					else
+					{
+						wait(NULL);
+					}
 				}
 			}
 		}
@@ -194,6 +304,6 @@ int main(int argc, char *argv[])
 		}
 		free(tokens);
 	}
-	printf(ANSI_COLOR_GREEN BOLD "---------------------------------------------------------------------B Y E-㉿\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_GREEN BOLD "\n---------------------------------------------------------------------B Y E-㉿\n" ANSI_COLOR_RESET);
 	return 0;
 }
