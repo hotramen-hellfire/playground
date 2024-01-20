@@ -158,7 +158,7 @@ void grim_reaper(struct bg_proc *bg_procs)
 
 int main(int argc, char *argv[])
 {
-	system("clear");
+	// system("clear");
 	struct bg_proc bg_procs[MAX_BG_PROCS];
 	init_jobs(bg_procs);
 	// show_jobs(bg_procs);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 		printf(ANSI_COLOR_YELLOW BOLD "%s" ANSI_COLOR_RESET, add);
 		printf(ANSI_COLOR_YELLOW "} \n" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_YELLOW "└─" ANSI_COLOR_RESET);
-		printf(ANSI_COLOR_YELLOW "🗲" ANSI_COLOR_RESET);
+		printf(ANSI_COLOR_YELLOW BOLD "🗲" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_YELLOW BOLD "🗲 " ANSI_COLOR_RESET);
 		// style input
 		printf(BOLD "");
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 						int status;
 						sleep(1);
 						int stat = waitpid(fork_u, &status, WNOHANG);
-						printf(ANSI_COLOR_YELLOW BOLD "spawner" ANSI_COLOR_RESET);
+						printf(ANSI_COLOR_YELLOW BOLD "\nspawner" ANSI_COLOR_RESET);
 						printf(ANSI_COLOR_YELLOW ": %s[%d] spawned. . .\n", tokens[0], fork_u);
 						if (stat > 0)
 						{

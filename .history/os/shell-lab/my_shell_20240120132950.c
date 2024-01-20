@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 		printf(ANSI_COLOR_YELLOW BOLD "%s" ANSI_COLOR_RESET, add);
 		printf(ANSI_COLOR_YELLOW "} \n" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_YELLOW "└─" ANSI_COLOR_RESET);
-		printf(ANSI_COLOR_YELLOW "🗲" ANSI_COLOR_RESET);
+		printf(ANSI_COLOR_YELLOW BOLD "🗲" ANSI_COLOR_RESET);
 		printf(ANSI_COLOR_YELLOW BOLD "🗲 " ANSI_COLOR_RESET);
 		// style input
 		printf(BOLD "");
