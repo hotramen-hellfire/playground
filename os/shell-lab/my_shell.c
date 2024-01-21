@@ -158,7 +158,7 @@ void grim_reaper(struct bg_proc *bg_procs)
 
 int main(int argc, char *argv[])
 {
-	system("clear");
+	// system("clear");
 	struct bg_proc bg_procs[MAX_BG_PROCS];
 	init_jobs(bg_procs);
 	// show_jobs(bg_procs);
@@ -288,10 +288,17 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						char homer[1000];
-						strcpy(homer, "./");
-						strcpy(homer + 2, tokens[1]);
-						ret = chdir(homer);
+						if (tokens[1][0] != '/')
+						{
+							char homer[1000];
+							strcpy(homer, "./");
+							strcpy(homer + 2, tokens[1]);
+							ret = chdir(homer);
+						}
+						else
+						{
+							ret = chdir(tokens[1]);
+						}
 					}
 				}
 				else
