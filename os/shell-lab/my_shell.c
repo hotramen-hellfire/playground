@@ -28,7 +28,6 @@ struct bg_proc
 	char name[100];
 	int pid;
 	int is_running;
-	// char status[100];
 };
 
 char **tokenize(char *line, int *bgFlag)
