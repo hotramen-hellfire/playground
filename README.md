@@ -1,1 +1,1 @@
-# This repository doesn't entail a specific product or service, but is just for the sake of daily code maintainence.
+# My playground for the stuff I learn.
