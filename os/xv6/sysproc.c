@@ -174,7 +174,7 @@ int sys_welcomeDone(void)
     curproc->tf->eip = curproc->returnFunction;
   else
   {
-    cprintf("(panik)Current Program didn't enter with a welcome fork!!\n"); // handle err
+    cprintf("(panik) Current Program didn't enter with a welcome fork!!\n"); // handle err
     return -1;
   }
   end_op();

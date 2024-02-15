@@ -374,7 +374,7 @@ void scheduler(void)
     {
       if (p->state != RUNNABLE)
         continue;
-      int thisprio = p->priority / 10; // simple time piece calculator (1-101)
+      int thisprio = p->priority / 100; // simple time piece calculator (1-10)
       while (p->state == RUNNABLE && thisprio > -1)
       {
         makeswch(c, p);
