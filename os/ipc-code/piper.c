@@ -13,7 +13,7 @@ int main()
     int fd;
     if (mkfifo(pathname, 0666) < 0)
     {
-        printf("named pipe exists!!\n");
+        printf("error creating, check path!!\n");
         // return -1;
     }
     printf("Sending:- Hello client!!, length=%d\n", strlen(ptr));

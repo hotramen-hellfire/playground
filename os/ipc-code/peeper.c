@@ -13,6 +13,7 @@ int main()
     int fd = open(pathname, O_RDONLY);
     char messagerecv[45];
     read(fd, messagerecv, sizeof(messagerecv));
+    // printf("%d\n", sizeof(messagerecv));
     printf(messagerecv);
     // write(fd, message, strlen(message) + 1);
     close(fd);
