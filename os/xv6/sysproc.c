@@ -167,6 +167,7 @@ int sys_welcomeFunction(void)
 
 int sys_welcomeDone(void)
 {
+  panic("you were a good friend!!\n");
   struct proc *curproc = myproc();
   begin_op();
   // if (curproc->returnFunction)
