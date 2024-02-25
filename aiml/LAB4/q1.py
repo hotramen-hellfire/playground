@@ -231,11 +231,3 @@ if __name__ == "__main__":
     with open("output_q1_params.txt","w") as output:
         output.write(str(params_history))
     pass
-
-
-
-
-
-
-
-
