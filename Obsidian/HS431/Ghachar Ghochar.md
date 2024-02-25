@@ -11,7 +11,7 @@ This seems like a clue from the author at the writing style. The story-telling u
 # Chapter 2 intricacies/ Venkatachala
 * **‘Will you please mention my name to him?’** this clues that Chikkappa must have known the woman before alongside **‘I’ve brought this because he’s fond of it. It’s masoor dal curry. Please give it to him.’**
 * **"Amma and Malati called her a beggar, a whore, and it was clear from the disbelief on her face that she had never been spoken to in this manner."** ~ for Suhasini
-* **"On that day I became convinced that it is the words of women that deeply wound other women."** ~  theme
+* **"On that day I became convinced that it is the words of women that deeply wound other women."** ~  narrator/ theme
 * **‘It’s enough for a man to simply stand there and watch. It’s worse than shouting at her yourself. How could you all pounce on that woman without knowing a thing about her? Is it her fault alone? You should all be ashamed of yourselves. Not one of you had the guts to even hear her out. How could they treat another woman like that?’** this shows Anita's dissent and her rather confronting nature, she stood up for what she thinks is right unlike her very husband.
 # Chapter 3 intricacies/ Family
 * **"Our only fear now is that he might lose his mind with age and become ruinously entangled in some philanthropic enterprise."**
@@ -34,7 +34,7 @@ This seems like a clue from the author at the writing style. The story-telling u
 * **Her mother-in-law wiped off her tears and said, ‘You can’t buy graciousness. It’s something that’s handed down the generations. They say the newly rich carry umbrellas to keep moonlight at bay…’**
 * **"I too followed soon after. When I passed the closed door of her room I thought I heard sobs from inside."** 
 * **"It isn’t easy for a woman to leave her husband and live in her mother’s house."**
-# Chapter 6 intricacies
+# Chapter 6 intricacies/ ANITA
 * **"I sometimes wonder if their every moment is spent sharpening their tongues, silently accumulating resentments for later use. And then, when they’re all in the mood, they’ll whip up a storm that gives me the shivers even to think about."**
 * **‘I hope the prince will eat in comfort. So what if the rest of us starve.’**  ~ Anita 
 * **"Anita doesn’t like to cook. It’s not that she can’t; she doesn’t want to."**
