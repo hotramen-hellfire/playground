@@ -217,8 +217,10 @@ int main()
         }
         fclose(fptr);
         sprintf(point, "\n");// temporary sol
-        char wbuff[10]="Done";
-        *(long*)and_point=(long)point;
+        char wbuff[10]="Done";\
+
+        *(long*)and_point=(long)point;                                                                                                                                                                              
+
         // printf("pardone\n");
         fflush(stdout);
         if (munmap(point_blanc, shmSIZE)<0)
