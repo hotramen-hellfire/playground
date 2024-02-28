@@ -216,6 +216,7 @@ int main()
             last_literal=literal;
         }
         fclose(fptr);
+        sprintf(point, "\n");// temporary sol
         char wbuff[10]="Done";
         *(long*)and_point=(long)point;
         // printf("pardone\n");
