@@ -48,7 +48,8 @@ int main()
         return 0;
     }
     void *point = mmap(NULL, sizeof(shmpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, shmfd, 0);
-    void *and_point = mmap(NULL, sizeof(pointpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, shmfd, 0);
+    void *point_blanc = point;
+    void *and_point = mmap(NULL, sizeof(pointpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, pointfd, 0);
     if (point==MAP_FAILED)
     {
         perror("mmap: ");
@@ -70,8 +71,9 @@ int main()
         FILE* fptr = fopen("play.txt", "r");  
         char wbuff[10];
         read(fdw, wbuff, sizeof(wbuff)); //waiting for cue
+                // exit(-1);
         point=(void*)*(long*)and_point;
-        if (strcmp(wbuff, "goSon")==0)
+        if (strcmp(wbuff, "yourTurnS")==0)
         {
         char last_literal = '\0';
             while(1)
@@ -91,6 +93,7 @@ int main()
                     while (1)
                     {
                         char innerliteral = getc(fptr);
+                        point+=1;
                         if (feof(fptr))
                         {
                             break;
@@ -98,12 +101,12 @@ int main()
                         if (innerliteral==':' && innerlast_literal=='1')
                         {
                             //our part has ended and we must return back to normalcy
-                            char rbuff[10]="goBiggie";
+                            char rbuff[10]="yourTurn";
                             *(long*)and_point=(long)point;
                             write(fdr, rbuff, sizeof(rbuff));
                             read(fdw, rbuff, sizeof(rbuff));
                             point=(void*)*(long*)and_point;
-                            if (strcmp(rbuff, "goSon")==0)
+                            if (strcmp(rbuff, "yourTurnS")==0)
                             {
                                 break;
                             }
@@ -128,20 +131,15 @@ int main()
                 last_literal=literal;
             }
         }
+        printf("\n");
+        fclose(fptr);
+        fflush(stdout);
         char rbuff[10]="Done";
         *(long*)and_point=(long)point;
         write(fdr, rbuff, sizeof(rbuff));
         close(fde);
         close(fdw);
         close(fdr);
-        fclose(fptr);
-        printf("\n");
-        fflush(stdout);
-        // if (shm_unlink(shmpath)<0)
-        // {
-        //     perror("unlink: ");
-        //     return 0;
-        // }
         return 0;
     }
     else
@@ -170,10 +168,12 @@ int main()
                 printf("Ben: ");
                 sprintf(point, "Ben: ");
                 point+=strlen("Ben: ");
+                // sprintf(point, "hiiii");
                 // break;
                 while (1)
                 {
                     char innerliteral = getc(fptr);
+                    point+=1;
                     if (feof(fptr))
                     {
                         break;
@@ -181,13 +181,15 @@ int main()
                     if (innerliteral==':' && innerlast_literal=='2')
                     {
                         //our part has ended and we must return back to normalcy
-                        char wbuff[10]="goSon";
+                        char wbuff[10]="yourTurnS";
                         // msgsnd();
                         *(long*)and_point=(long)point;
+                                // exit(-1);
+
                         write(fdw, wbuff, sizeof(wbuff));
                         read(fdr, wbuff, sizeof(wbuff));
                         point=(void*)*(long*)and_point;
-                        if (strcmp(wbuff, "goBiggie")==0)
+                        if (strcmp(wbuff, "yourTurn")==0)
                         {
                             break;
                         }
@@ -204,7 +206,7 @@ int main()
                     printf("%c",innerlast_literal);
                     char buffer[1];
                     sprintf(buffer, "%c", innerlast_literal);
-                    sprintf(point, buffer, 1);
+                    sprintf(point, buffer);
                     point+=1;
                     innerlast_literal=innerliteral;
                 }
@@ -213,17 +215,12 @@ int main()
             }
             last_literal=literal;
         }
+        fclose(fptr);
         char wbuff[10]="Done";
         *(long*)and_point=(long)point;
-        write(fdw, wbuff, sizeof(wbuff));
-        wait(NULL);
-        printf("\n");
+        // printf("pardone\n");
         fflush(stdout);
-        close(fde);
-        close(fdw);
-        close(fdr);
-        fclose(fptr);
-        if (munmap(point, shmSIZE)<0)
+        if (munmap(point_blanc, shmSIZE)<0)
         {
             perror("munmap: ");
             return 0;
@@ -233,6 +230,12 @@ int main()
         //     perror("unlink: ");
         //     return 0;
         // }
+        // printf("here\n");
+        write(fdw, wbuff, sizeof(wbuff));
+        wait(NULL);
+        close(fde);
+        close(fdw);
+        close(fdr);
     }
     return 0;
 }
