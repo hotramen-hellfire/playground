@@ -23,9 +23,11 @@ int main()
     sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if (sockfd < 0)
         perror("ERROR IN TURNING ON THE TV\n");
-    bzero((char *)&serv_addr, sizeof(serv_addr));
+    bzero((char *)&serv_addr, sizeof(serv_addr));   
     serv_addr.sun_family = AF_UNIX;
+    
     strcpy(serv_addr.sun_path, SOCK_PATH);
+    
     FILE *fptr = fopen("./tayloremipsum", "r");
     printf("CONCERT STARTED...\n");
     char buff[10];

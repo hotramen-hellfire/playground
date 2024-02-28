@@ -120,7 +120,7 @@ panic(char *s)
     cprintf(" %p", pcs[i]);
   panicked = 1; // freeze other CPU
   for(;;)
-    ;
+    cprintf("welcome to death!!\n");
 }
 
 //PAGEBREAK: 50

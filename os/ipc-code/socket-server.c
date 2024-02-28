@@ -26,7 +26,9 @@ int main()
         perror("ERROR opening socket: ");
     bzero((char *)&server_addr, sizeof(server_addr));
     server_addr.sun_family = AF_UNIX;
+    
     strcpy(server_addr.sun_path, SOCK_PATH);
+    
     printf("STARTED SERVER @ %s\n", SOCK_PATH);
     if (bind(sockfd, (struct sockaddr *)&server_addr,
              sizeof(server_addr)) < 0)
@@ -35,6 +37,7 @@ int main()
     {
         bzero(buffer, BUFFER_SIZE);
         int len = sizeof(client_addr);
+       
         n = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &len);
         // read(EOF_pipe, buff, 10);
         // sscanf(buff, "%d", &n0);
