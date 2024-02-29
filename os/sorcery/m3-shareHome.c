@@ -47,7 +47,10 @@ int main()
         perror("ftruncate error: ");
         return 0;
     }
-    void *point = mmap(NULL, sizeof(shmpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, shmfd, 0);
+    void* passed = (void*)shmpath;
+    void *point = mmap(passed, sizeof(shmpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, shmfd, 0);
+    printf("\n%p\n", *(void**)passed);
+    printf("\n%p\n", point);
     void *point_blanc = point;
     void *and_point = mmap(NULL, sizeof(pointpath), PROT_EXEC|PROT_WRITE|PROT_EXEC, MAP_SHARED, pointfd, 0);
     if (point==MAP_FAILED)
@@ -137,9 +140,9 @@ int main()
         char rbuff[10]="Done";
         *(long*)and_point=(long)point;
         write(fdr, rbuff, sizeof(rbuff));
-        close(fde);
-        close(fdw);
-        close(fdr);
+//       close(fde);
+//        close(fdw);
+//        close(fdr);
         return 0;
     }
     else
