@@ -78,7 +78,7 @@ int main()
         point=(void*)*(long*)and_point;
         if (strcmp(wbuff, "yourTurnS")==0)
         {
-        char last_literal = '\0';
+        char last_literal = 160;
             while(1)
             {
                 char literal = getc(fptr);
@@ -126,7 +126,7 @@ int main()
                         sprintf(buffer, "%c", innerlast_literal);
                         sprintf(point, buffer, 1);
                         innerlast_literal=innerliteral;
-                        point+=1;
+                        // point+=1;
                     }
                     fflush(stdout);
                     // sleep(1);
@@ -154,7 +154,7 @@ int main()
         int fde = open(eofpipepath, O_WRONLY);
         FILE* fptr = fopen("play.txt", "r");  
         //we'll loop over every character untill it the next character's turn
-        char last_literal = '\0';
+        char last_literal = 160;
         while (1)
         {
             // sprintf(point, "hi", sizeof());
@@ -210,7 +210,7 @@ int main()
                     char buffer[1];
                     sprintf(buffer, "%c", innerlast_literal);
                     sprintf(point, buffer);
-                    point+=1;
+                    // point+=1;
                     innerlast_literal=innerliteral;
                 }
                 fflush(stdout);
@@ -224,7 +224,10 @@ int main()
 
         *(long*)and_point=(long)point;                                                                                                                                                                              
 
-        // printf("pardone\n");
+        char buff[15];
+        memcpy(buff, point_blanc, sizeof(buff)-1);
+        buff[sizeof(buff)-1]='\0';
+        printf("\ntesting:\n%s\n", buff);
         fflush(stdout);
         if (munmap(point_blanc, shmSIZE)<0)
         {
