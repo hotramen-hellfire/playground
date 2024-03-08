@@ -35,6 +35,9 @@ public:
     void clearRBT(Node *&root);
     Node* minValueNode(Node*);
     Node* maxValueNode(Node*);
+    void fixDelete(Node*);
+    void deleteNode(Node*);
+    void transplant(Node* u, Node* v);
 };
 
 // Rotate Left
@@ -188,6 +191,127 @@ Node* RedBlackTree::search(float key) {
     return nullptr; // Node with given key not found
 }
 
+void RedBlackTree::transplant(Node* u, Node* v) {
+    if (u->parent == nullptr)
+        root = v;
+    else if (u == u->parent->left) {
+        u->parent->left = v;
+        if (v != nullptr)
+            v->parent = u->parent; // Update parent of v
+    } else {
+        u->parent->right = v;
+        if (v != nullptr)
+            v->parent = u->parent; // Update parent of v
+    }
+}
+
+
+
+void RedBlackTree::fixDelete(Node* x) {
+    while (x != root && x->color == BLACK) {
+        if (x == x->parent->left) {
+            Node* w = x->parent->right;
+            if (w == nullptr)  // Added check for null
+                return;
+            if (w->color == RED) {
+                w->color = BLACK;
+                x->parent->color = RED;
+                rotateLeft(x->parent);
+                w = x->parent->right;
+            }
+            if (w->left->color == BLACK && w->right->color == BLACK) {
+                w->color = RED;
+                x = x->parent;
+            } else {
+                if (w->right->color == BLACK) {
+                    w->left->color = BLACK;
+                    w->color = RED;
+                    rotateRight(w);
+                    w = x->parent->right;
+                }
+                w->color = x->parent->color;
+                x->parent->color = BLACK;
+                w->right->color = BLACK;
+                rotateLeft(x->parent);
+                x = root;
+            }
+        } else {
+            Node* w = x->parent->left;
+            if (w == nullptr)  // Added check for null
+                return;
+            if (w->color == RED) {
+                w->color = BLACK;
+                x->parent->color = RED;
+                rotateRight(x->parent);
+                w = x->parent->left;
+            }
+            if (w->right->color == BLACK && w->left->color == BLACK) {
+                w->color = RED;
+                x = x->parent;
+            } else {
+                if (w->left->color == BLACK) {
+                    w->right->color = BLACK;
+                    w->color = RED;
+                    rotateLeft(w);
+                    w = x->parent->left;
+                }
+                w->color = x->parent->color;
+                x->parent->color = BLACK;
+                w->left->color = BLACK;
+                rotateRight(x->parent);
+                x = root;
+            }
+        }
+    }
+    if (x != nullptr)  // Added check for null
+        x->color = BLACK;
+}
+
+
+void RedBlackTree::deleteNode(Node *node) {
+    Node *y = node; // Node to be deleted
+    Node *x = nullptr;
+    Color original_color = y->color;
+
+    if (node->left == nullptr) {
+        x = node->right;
+        transplant(node, node->right);
+    } else if (node->right == nullptr) {
+        x = node->left;
+        transplant(node, node->left);
+    } else {
+        y = minValueNode(node->right);
+        original_color = y->color;
+        x = y->right;
+        if (y->parent == node)
+            x->parent = y;
+        else {
+            transplant(y, y->right);
+            y->right = node->right;
+            y->right->parent = y;
+        }
+        transplant(node, y);
+        y->left = node->left;
+        y->left->parent = y;
+        y->color = node->color;
+    }
+
+    if (x != nullptr) {
+        if (original_color == BLACK)
+            fixDelete(x);
+    } else if (node->parent == nullptr) {
+        root = nullptr; // Update root when deleting the only node
+    } else {
+        if (node == node->parent->left)
+            node->parent->left = nullptr;
+        else
+            node->parent->right = nullptr;
+    }
+
+    delete node;
+}
+
+
 // Erase a value with given key and value from the Red-Black Tree
 void RedBlackTree::erase(float key, int value) {
     Node *node = search(key);
@@ -202,6 +326,7 @@ void RedBlackTree::erase(float key, int value) {
     if (node->values.empty()) { // If the node has no more values, perform regular deletion
         // Perform deletion as in BST
         // Code for BST deletion not included here for brevity
+        deleteNode(node);
     }
 }
 

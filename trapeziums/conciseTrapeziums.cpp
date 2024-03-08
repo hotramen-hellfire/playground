@@ -1,6 +1,10 @@
 #include <bits/stdc++.h>
-#include "rbt.h"
+#include "bst.h"
 using namespace std;
+
+void halt(){
+    return;
+}
 
 float _round(float var)// to 5 dps
 {
@@ -117,9 +121,9 @@ void showevents(priority_queue<event, vector<event>, CompareEvents> &events)
 	return;
 }
 
-void updateSLS(map<int, float> &vals, RedBlackTree &lines, set<int> &actives, point &p, vector<segment> &segments, pair<int, int> &event_lines)
+void updateSLS(map<int, float> &vals, BinarySearchTree &lines, set<int> &actives, point &p, vector<segment> &segments, pair<int, int> &event_lines)
 {
-	lines.clearRBT(lines.root);
+	lines.clearBST(lines.root);
     float x_new = p.x;
 	for (auto it: actives)
 	{
@@ -234,7 +238,7 @@ int main()
 	vector<vector<int>> intsxns(n, vector<int>(n, 0));
 	map<int, float> vals;//this is to get the last assumed y coordinate
 	set<int> actives;
-    RedBlackTree lines;
+    BinarySearchTree lines;
 	while (!events.empty())
 	{
 		event this_event=events.top();
@@ -281,7 +285,6 @@ int main()
             Node* succ = lines.successor(vals[this_event.lines.first]);
             Node* this_node = lines.search(vals[this_event.lines.first]);
             // cout<<"--------------------->"<<endl;
-            // lines.printRBT(lines.root);
             // cout<<actives.size()<<endl;
             // cout<<"--------------------->"<<endl;
             if (pred!=nullptr)
@@ -331,6 +334,9 @@ int main()
             Node* pred = lines.predecessor(vals[this_event.lines.second]);
             Node* succ = lines.successor(vals[this_event.lines.second]);
             Node* this_node = lines.search(vals[this_event.lines.second]);
+            // cout<<this_event.p.x<<" "<<this_event.p.y<<endl;
+            // lines.printBST(lines.root);
+            // halt();
             if (pred!=nullptr && succ!=nullptr) 
             {
                 for (auto it: pred->values){
