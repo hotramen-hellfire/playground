@@ -93,7 +93,7 @@ struct CompareEvents {
     }
 };
 
-void showevents(priority_queue<event, vector<event>, CompareEvents> &events)
+void showevents(priority_queue<event, vector<event>, CompareEvents> events)
 {
 	cout<<"--------------------------------------->\n";
 	cout<<"showevents:\n";
@@ -118,21 +118,6 @@ void showevents(priority_queue<event, vector<event>, CompareEvents> &events)
 		}
 	}
 	cout<<"--------------------------------------->\n";
-	return;
-}
-
-void updateSLS(map<int, float> &vals, BinarySearchTree &lines, set<int> &actives, point &p, vector<segment> &segments, pair<int, int> &event_lines)
-{
-	lines.clearBST(lines.root);
-    float x_new = p.x;
-	for (auto it: actives)
-	{
-		float y_new = (x_new-segments[it].l.x)*((segments[it].r.y-segments[it].l.y)/(segments[it].r.x-segments[it].l.x)) + segments[it].l.y;
-		y_new=_round(y_new);
-        if (it==event_lines.first || it==event_lines.second) y_new=p.y; //epsilon stitching off
-        vals[it]=y_new;
-		lines.insert(y_new, it);
-	}
 	return;
 }
 
@@ -212,10 +197,80 @@ void printskylineset(set<pair<int, int>> &skylineset)
 	}
     return;
 }
+
+float updateLine(map<int, float> &vals, BinarySearchTree &lines, set<int> &actives, vector<segment> &segments, int line, event &e)
+{
+    int it=line;
+    float x_new = e.p.x;
+    if (actives.find(it) != actives.end())//line is active
+    {
+            float y_new = (x_new-segments[it].l.x)*((segments[it].r.y-segments[it].l.y)/(segments[it].r.x-segments[it].l.x)) + segments[it].l.y;
+            y_new=_round(y_new);
+            if (it==e.lines.first || it==e.lines.second) y_new=e.p.y; //epsilon stitching off
+            lines.erase(vals[it],it);
+            vals[it]=y_new;
+            lines.insert(vals[it], it);
+            return vals[it];
+    }
+    else//line cannot be inactive
+    {
+            assert(false);//sanitycheck
+            lines.erase(vals[it],it);
+            return -1;
+    }
+    return -1;// to remove the warning
+}
+
+void getPredSucc(BinarySearchTree &lines, Node* &pred, Node* &succ, event &this_event, set<int> &actives, vector<segment> &segments, map<int, float> &vals)
+{
+            pred = lines.predecessor(this_event.p.y);
+            succ = lines.successor(this_event.p.y);
+            bool settled = false;
+            set<int> updated;
+            while (!settled)
+            {
+                vector<float> points;
+                if (pred!=nullptr)
+                {
+                    for (auto it: pred->values)
+                    {
+                        if (!(updated.find(it) != updated.end()))
+                        {
+                            updated.insert(it);
+                            float u = updateLine(vals, lines, actives, segments, it, this_event);
+                            points.push_back(u);
+                        }
+                    }
+                }
+                if (succ!=nullptr)
+                {
+                    for (auto it: succ->values)
+                    {
+                        if (!(updated.find(it) != updated.end()))
+                        {
+                            updated.insert(it);
+                            float u = updateLine(vals, lines, actives, segments, it, this_event);
+                            points.push_back(u);
+                        }
+                    }
+                }
+                if (points.size()>0)
+                {
+                    pred=lines.predecessor(this_event.p.y);
+                    succ=lines.successor(this_event.p.y);
+                }
+                else
+                {
+                    //we have found pred and succ
+                    settled=true;
+                }
+            }
+            return;
+}
+
 int main()
 {
     //taking the inputs
-	// vector<segment> segments={segment(point(1,8), point(7,4)),segment(point(2,9), point(7,2)),segment(point(3,5), point(7,9))};
 	int n;
 	cin >> n;
 	float a,b,c,d;
@@ -239,21 +294,35 @@ int main()
 	map<int, float> vals;//this is to get the last assumed y coordinate
 	set<int> actives;
     BinarySearchTree lines;
+    // showevents(events);
 	while (!events.empty())
 	{
 		event this_event=events.top();
 		events.pop();
+        // cout<<"e "<<this_event.p.x<<" "<<this_event.p.y<<endl;
 		if (this_event.lines.first>-1 && this_event.lines.second>-1)
 		{
-            updateSLS(vals, lines, actives, this_event.p, segments, this_event.lines);
-            Node* maxValNode = lines.maxValueNode(lines.root);
-            if (fabs(maxValNode->key-this_event.p.y)<EPSILON)
+            lines.erase(vals[this_event.lines.second], this_event.lines.second);
+            lines.erase(vals[this_event.lines.first], this_event.lines.first);
+            vals[this_event.lines.second]=this_event.p.y;
+            vals[this_event.lines.first]=this_event.p.y;
+            Node* this_node = lines.insert(vals[this_event.lines.second], this_event.lines.second);
+            Node* this_node2 = lines.insert(vals[this_event.lines.first], this_event.lines.first);
+            assert(this_node==this_node2); //sanity check
+            assert((this_node->key-vals[this_event.lines.first])<EPSILON);
+            
+            // if (fabs(740.8-this_event.p.x)<EPSILON) halt();
+            // lines.printBST(lines.root); 
+            
+            Node* pred = nullptr;
+            Node* succ = nullptr;
+            getPredSucc(lines, pred, succ, this_event, actives, segments, vals);   
+
+            if (succ==nullptr)
             {
                 skyline.push_back({this_event.p.x, this_event.p.y});
             }
-            Node* pred = lines.predecessor(vals[this_event.lines.first]);
-            Node* succ = lines.successor(vals[this_event.lines.first]);
-            Node* this_node = lines.search(vals[this_event.lines.first]);
+
             if (pred!=nullptr)
             {
                 assert(pred->values.size()>0);
@@ -262,7 +331,6 @@ int main()
                     update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);
                     update_intersection(intsxns, this_event.lines.second, it, segments, this_event.p.x, events);
                 }
-                // for (auto it: this_node->values) if (it!=this_event.lines.first) update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);
             }
             if (succ!=nullptr)
             {
@@ -272,26 +340,25 @@ int main()
                     update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);
                     update_intersection(intsxns, this_event.lines.second, it, segments, this_event.p.x, events);
                 }
-                // for (auto it: this_node->values) if (it!=this_event.lines.first) update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);
             }
 		}
 		else if (this_event.lines.first>-1)
 		{
-			//start of a segment
+            // halt();
+            // lines.printBST(lines.root);
 			actives.insert(this_event.lines.first);
-			updateSLS(vals, lines, actives, this_event.p, segments, this_event.lines);
-			// showstatus(lines, this_event.p.x);
-            Node* pred = lines.predecessor(vals[this_event.lines.first]);
-            Node* succ = lines.successor(vals[this_event.lines.first]);
-            Node* this_node = lines.search(vals[this_event.lines.first]);
-            // cout<<"--------------------->"<<endl;
-            // cout<<actives.size()<<endl;
-            // cout<<"--------------------->"<<endl;
+            Node* this_node = lines.insert(this_event.p.y, this_event.lines.first);
+            // lines.printBST(lines.root);
+            vals[this_event.lines.first]=this_event.p.y;
+
+            Node* pred = nullptr;
+            Node* succ = nullptr;
+            getPredSucc(lines, pred, succ, this_event, actives, segments, vals);
+            // lines.printBST(lines.root); 
             if (pred!=nullptr)
             {
                 assert(pred->values.size()>0);
-                for (auto it: pred->values) update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);
-            
+                for (auto it: pred->values) update_intersection(intsxns, this_event.lines.first, it, segments, this_event.p.x, events);     
             }
             if (succ!=nullptr)
             {
@@ -310,7 +377,6 @@ int main()
                     {
                         skyline.push_back({this_event.p.x,0});
                         skyline.push_back({this_event.p.x,this_event.p.y});        
-
                     }
                 }
                 else
@@ -330,10 +396,18 @@ int main()
         else if (this_event.lines.second>-1)
 		{
 			//end of a segment
-			updateSLS(vals, lines, actives, this_event.p, segments, this_event.lines);// we will erase the line from lines and actives manually
-            Node* pred = lines.predecessor(vals[this_event.lines.second]);
-            Node* succ = lines.successor(vals[this_event.lines.second]);
-            Node* this_node = lines.search(vals[this_event.lines.second]);
+            // cout<<"1-------------------"<<this_event.lines.second<<endl;
+            // lines.printBST(lines.root);
+            lines.erase(vals[this_event.lines.second], this_event.lines.second);
+            // cout<<"5inserting "<<this_event.p.y<<" "<<this_event.lines.first<<endl;
+            Node* this_node = lines.insert(this_event.p.y, this_event.lines.second);
+            vals[this_event.lines.second]=this_event.p.y;
+
+            Node* pred = nullptr;
+            Node* succ = nullptr;
+            getPredSucc(lines, pred, succ, this_event, actives, segments, vals);           
+            // cout<<"2-------------------"<<this_event.lines.second<<endl;
+            // lines.printBST(lines.root);
             if (pred!=nullptr && succ!=nullptr) 
             {
                 for (auto it: pred->values){
@@ -368,7 +442,12 @@ int main()
                 }
             }
             actives.erase(this_event.lines.second);
-			updateSLS(vals, lines, actives, this_event.p, segments, this_event.lines);
+            // cout<<"3-------------------"<<this_event.lines.second<<endl;
+            // lines.printBST(lines.root);
+                lines.erase(vals[this_event.lines.second], this_event.lines.second);
+            // cout<<"4-------------------"<<this_event.lines.second<<endl;
+            // lines.printBST(lines.root);
+            // cout<<"-------------------"<<this_event.lines.second<<endl<<endl;
 		}
 		else
 		{
