@@ -13,6 +13,7 @@ int init_alloc();
 int cleanup();
 char *alloc(int);
 void dealloc(char *);
+void _chunkstat(void);
 
 struct chunk{
     int size;
@@ -22,7 +23,7 @@ struct chunk{
 };
 
 struct paper{
-    struct chunk start_chunk;
+    struct chunk* start_chunk;
     void* base_ptr;
     int size_unallocated;
 };
@@ -38,7 +39,7 @@ void dealloc(char * ptr)
     bool found=false;
     while(current_chunk!=0X0 && found==false)
     {
-        if ((current_chunk->start_offset+paper_point->base_ptr)==(void*)ptr)
+        if ((current_chunk->start_offset+(char*)paper_point->base_ptr)==ptr)
         {
             found=true;
             current_chunk->inuse=false;
@@ -62,9 +63,11 @@ void dealloc(char * ptr)
         }
         else
         {
-            // Napoleon: there's nothing we can do 
+            // Napoleon: there's nothing we can do
+            prev_chunk=current_chunk;
+            current_chunk=current_chunk->next_chunk;
         }
-        prev_chunk=current_chunk;
+
     }
 
 }
@@ -77,11 +80,12 @@ int init_alloc()
     if (ptr==MAP_FAILED)
     {
         perror("mmap failed: ");
+        fflush(stdout);
         return errno;
     }
     hasPage=true;
-    paper_point=malloc(sizeof(struct paper));
-    paper_point->start_chunk=malloc(sizeof(struct chunk));
+    paper_point=(paper*)malloc(sizeof(struct paper));
+    paper_point->start_chunk=(chunk*)malloc(sizeof(struct chunk));
     paper_point->start_chunk->size=PAGESIZE;
     paper_point->start_chunk->inuse=false;
     paper_point->start_chunk->next_chunk=0x0;
@@ -93,6 +97,7 @@ int init_alloc()
     else
     {
         printf("a page has already been assigned use cleanup() to clear it first!! :P");
+        fflush(stdout);
         return -1;//page already assigned
     }
 }
@@ -102,7 +107,7 @@ int cleanup()
     //will have to traverse the list to dealloc each node
     struct chunk* current_chunk = paper_point->start_chunk;
     struct chunk* prev_chunk = 0x0;
-    while(start_chunk!=0x0)
+    while(current_chunk!=0x0)
     {
         if (prev_chunk!=0x0)
         {
@@ -115,6 +120,7 @@ int cleanup()
     if (munmap(paper_point->base_ptr, PAGESIZE)<0)
     {
         perror("munmap err: ");
+        fflush(stdout);
         return errno;
     }
     free(paper_point);
@@ -151,7 +157,9 @@ char* alloc(int requested_size)
             //i'll start filling the data from the start, i.e. after the split the second chunk will not be in use
             struct chunk* old_next_chunk=this_chunk->next_chunk;
             //get memory for the node
-            this_chunk->next_chunk=malloc(sizeof(struct chunk));
+            if (this_chunk->size!=requested_size)
+            {
+            this_chunk->next_chunk=(chunk*)malloc(sizeof(struct chunk));
             //now configure both the chunks
             this_chunk->next_chunk->size=this_chunk->size-requested_size;
             this_chunk->size=requested_size;
@@ -159,6 +167,11 @@ char* alloc(int requested_size)
             this_chunk->inuse=true;
             this_chunk->next_chunk->start_offset=this_chunk->start_offset+requested_size;
             this_chunk->next_chunk->next_chunk=old_next_chunk;
+            }
+            else
+            {
+                this_chunk->inuse=true;
+            }
             //I think the split is ready to be served
         }   
         else
@@ -168,11 +181,31 @@ char* alloc(int requested_size)
     }
     if (found==true)
     {
-        return (char*)(this_chunk->start_offset+paper_point->base_ptr);
+        fflush(stdout);
+        return (char*)(this_chunk->start_offset+(char*)paper_point->base_ptr);
     }
     else
     {
         printf("too much fragmentation!!");
+        fflush(stdout);
         return 0x0;
     }
+}
+
+void _chunkstat() // bonus from himanshu <3
+{
+    if (hasPage==false)
+    {
+        printf("no page to chunkstat\n");
+        return;
+    }
+    struct chunk* this_chunk=paper_point->start_chunk;
+    printf("------------------------------>\n");
+    while(this_chunk!=0x0)
+    {
+        printf("size=%d, inuse=%d, offset=%d\n", this_chunk->size, this_chunk->inuse, this_chunk->start_offset);
+        this_chunk=this_chunk->next_chunk;
+    }
+    printf("------------------------------>\n");
+    return;
 }

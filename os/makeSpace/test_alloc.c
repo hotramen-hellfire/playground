@@ -77,7 +77,6 @@ int main()
 	  printf("Test 1 failed: A: %d, B: %d, C: %d, D: %d\n", strcmp(stringA, strA), strcmp(stringB, strB), strcmp(stringC, strC), strcmp(stringD, strD));
 
 	/**** test 2 ****/
-	
 	dealloc(strC);
 
 	char *strX = alloc(1024);
@@ -136,7 +135,6 @@ int main()
 	  printf("Test 4 passed: merge worked\n");
 	else
 	  printf("Test 4 failed: X: %d\n", strcmp(stringX, strX));
-
 	//test 5: free 2x1024, allocate 2048
 	
 	dealloc(strX);
