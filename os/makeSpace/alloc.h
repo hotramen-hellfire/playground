@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #define PAGESIZE 4096 //size of memory to allocate from OS
 #define MINALLOC 8 //allocations will be 8 bytes or multiples of it
@@ -34,6 +35,15 @@ struct paper* paper_point=nullptr;
 
 void dealloc(char * ptr)
 {
+    if (hasPage==false)
+    {
+        printf("no page exists!!\n");
+        return;
+    }
+    if ((int)(ptr-(char*)paper_point->base_ptr)>PAGESIZE-1)
+    {
+        return;
+    }
     struct chunk* current_chunk = paper_point->start_chunk;
     struct chunk* prev_chunk = 0x0;
     bool found=false;
@@ -67,9 +77,9 @@ void dealloc(char * ptr)
             prev_chunk=current_chunk;
             current_chunk=current_chunk->next_chunk;
         }
-
     }
-
+    if (found==false) printf("no chunk to dealloc()!!\n");
+    return;
 }
 
 int init_alloc()
