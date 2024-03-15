@@ -29,3 +29,7 @@
 #define SYS_getprio 28
 #define SYS_welcomeFunction 29
 #define SYS_welcomeDone 30
+#define SYS_getvp 31
+#define SYS_getpp 32
+#define SYS_mmap 33
+#define SYS_getNumFreePages 34

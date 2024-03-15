@@ -50,6 +50,17 @@ int sys_sbrk(void)
   return addr;
 }
 
+int sys_mmap(void)
+{
+  int n=0;
+  if (argint(0, &n) < 0)
+    return 0;
+  if (n<0 || n%PGSIZE) return 0;
+  int addr=myproc()->sz;
+  myproc()->sz+=n;
+  return addr;
+}
+
 int sys_sleep(void)
 {
   int n;
@@ -180,4 +191,19 @@ int sys_welcomeDone(void)
   }
   end_op();
   return 0;
+}
+
+int sys_getvp(void)
+{
+  return myproc()->sz/PGSIZE;
+}
+
+int sys_getpp(void)
+{
+  return vm_numpp(myproc()->pgdir, myproc()->sz);
+}
+
+int sys_getNumFreePages(void)
+{
+  return -1;
 }

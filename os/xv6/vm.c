@@ -79,6 +79,51 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
   return 0;
 }
 
+int vm_numpp(pde_t *pgdir,  uint sz)
+{
+  int returnable=0;
+  pte_t* returned;
+  char *add_init = PGROUNDDOWN((uint)0);
+  for (int i=0; i<sz; i+=PGSIZE)
+  {
+    if ((returned=walkpgdir(pgdir, add_init+i, 0))!=0)
+    {
+      if (*returned & PTE_P)
+      {
+          returnable++;
+      }
+    }
+    else{
+      panic("wrong inpute vm_pp\n");
+    }
+  }
+  return returnable;
+}
+
+// Load a program segment into pgdir.  addr must be page-aligned
+// and the pages from addr to addr+sz must already be mapped.
+int
+loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
+{
+  uint i, pa, n;
+  pte_t *pte;
+
+  if((uint) addr % PGSIZE != 0)
+    panic("loaduvm: addr must be page aligned");
+  for(i = 0; i < sz; i += PGSIZE){
+    if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
+      panic("loaduvm: address should exist");
+    pa = PTE_ADDR(*pte);
+    if(sz - i < PGSIZE)
+      n = sz - i;
+    else
+      n = PGSIZE;
+    if(readi(ip, P2V(pa), offset+i, n) != n)
+      return -1;
+  }
+  return 0;
+}
+
 // There is one page table per process, plus one that's used when
 // a CPU is not running any process (kpgdir). The kernel uses the
 // current process's page table during system calls and interrupts;
@@ -192,29 +237,6 @@ inituvm(pde_t *pgdir, char *init, uint sz)
   memmove(mem, init, sz);
 }
 
-// Load a program segment into pgdir.  addr must be page-aligned
-// and the pages from addr to addr+sz must already be mapped.
-int
-loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
-{
-  uint i, pa, n;
-  pte_t *pte;
-
-  if((uint) addr % PGSIZE != 0)
-    panic("loaduvm: addr must be page aligned");
-  for(i = 0; i < sz; i += PGSIZE){
-    if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
-      panic("loaduvm: address should exist");
-    pa = PTE_ADDR(*pte);
-    if(sz - i < PGSIZE)
-      n = sz - i;
-    else
-      n = PGSIZE;
-    if(readi(ip, P2V(pa), offset+i, n) != n)
-      return -1;
-  }
-  return 0;
-}
 
 // Allocate page tables and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.

@@ -77,7 +77,12 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-
+  case T_PGFLT:
+    struct proc* curproc=myproc();
+    uint addr=PGROUNDDOWN(rcr2());
+    allocuvm(curproc->pgdir,  addr, addr+PGSIZE);
+    switchuvm(curproc);
+    break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){

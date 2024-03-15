@@ -32,6 +32,10 @@ int setprio(int n);
 int getprio(void);
 int welcomeFunction(uint func_pointer);
 int welcomeDone(void);
+int getvp(void);
+int getpp(void);
+int mmap(int);
+int getNumFreePages(void);
 
 // ulib.c
 int stat(const char *, struct stat *);

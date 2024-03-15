@@ -108,6 +108,10 @@ extern int sys_setprio(void);
 extern int sys_getprio(void);
 extern int sys_welcomeDone(void);
 extern int sys_welcomeFunction(void);
+extern int sys_getvp(void);
+extern int sys_getpp(void);
+extern int sys_mmap(void);
+extern int sys_getNumFreePages(void);
 
 static int (*syscalls[])(void) = {
     [SYS_fork] sys_fork,
@@ -139,7 +143,12 @@ static int (*syscalls[])(void) = {
     [SYS_setprio] sys_setprio,
     [SYS_getprio] sys_getprio,
     [SYS_welcomeDone] sys_welcomeDone,
-    [SYS_welcomeFunction] sys_welcomeFunction};
+    [SYS_welcomeFunction] sys_welcomeFunction,
+    [SYS_getvp] sys_getvp,
+    [SYS_getpp] sys_getpp,
+    [SYS_mmap] sys_mmap,
+    [SYS_getNumFreePages] sys_getNumFreePages,
+};
 
 void syscall(void)
 {
