@@ -21,10 +21,18 @@ struct {
   struct spinlock lock;
   int use_lock;
   struct run *freelist;
+  int num_free_pages;
 } kmem;
 
+struct spinlock reflock;
+int refs_count[PHYSTOP/PGSIZE];
+
+int gettingNumFreePages(void){
+  return kmem.num_free_pages;
+}
+
 // Initialization happens in two phases.
-// 1. main() calls kinit1() while still using entrypgdir to place just
+// 1. main() calls kinit1() while, still using entrypgdir to place just
 // the pages mapped by entrypgdir on free list.
 // 2. main() calls kinit2() with the rest of the physical pages
 // after installing a full page table that maps them on all cores.
@@ -32,6 +40,7 @@ void
 kinit1(void *vstart, void *vend)
 {
   initlock(&kmem.lock, "kmem");
+  // initlock(&reflock, "ref");//2nd arguement is the name of the lock// will use kmemlock
   kmem.use_lock = 0;
   freerange(vstart, vend);
 }
@@ -48,8 +57,11 @@ freerange(void *vstart, void *vend)
 {
   char *p;
   p = (char*)PGROUNDUP((uint)vstart);
-  for(; p + PGSIZE <= (char*)vend; p += PGSIZE)
+  for(; p + PGSIZE <= (char*)vend; p += PGSIZE) //vend is PHYSTOP
+  {
+    refs_count[(uint)p/PGSIZE]=1;
     kfree(p);
+  }  
 }
 //PAGEBREAK: 21
 // Free the page of physical memory pointed at by v,
@@ -65,13 +77,24 @@ kfree(char *v)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
+  // we will have to andle the edge when 2 or more threrads call kfree at the same time, nothing equality exact with threads
+  
   memset(v, 1, PGSIZE);
 
   if(kmem.use_lock)
     acquire(&kmem.lock);
-  r = (struct run*)v;
-  r->next = kmem.freelist;
-  kmem.freelist = r;
+
+  if (refs_count[(uint)v/PGSIZE]<=1)
+  {
+    r = (struct run*)v;
+    r->next = kmem.freelist;
+    kmem.freelist = r;
+    kmem.num_free_pages++;
+  }
+  else
+  {
+    refs_count[(uint)v/PGSIZE]-=1;
+  }
   if(kmem.use_lock)
     release(&kmem.lock);
 }
@@ -88,9 +111,12 @@ kalloc(void)
     acquire(&kmem.lock);
   r = kmem.freelist;
   if(r)
+  {
     kmem.freelist = r->next;
+    kmem.num_free_pages--;
+    refs_count[(uint)r/PGSIZE]=1;
+  }
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;
 }
-

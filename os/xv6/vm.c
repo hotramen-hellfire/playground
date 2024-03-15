@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "elf.h"
 
+static int
+mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm);
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
 
@@ -52,31 +54,6 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
     *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
   }
   return &pgtab[PTX(va)];
-}
-
-// Create PTEs for virtual addresses starting at va that refer to
-// physical addresses starting at pa. va and size might not
-// be page-aligned.
-static int
-mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
-{
-  char *a, *last;
-  pte_t *pte;
-
-  a = (char*)PGROUNDDOWN((uint)va);
-  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
-  for(;;){
-    if((pte = walkpgdir(pgdir, a, 1)) == 0)
-      return -1;
-    if(*pte & PTE_P)
-      panic("remap");
-    *pte = pa | perm | PTE_P;
-    if(a == last)
-      break;
-    a += PGSIZE;
-    pa += PGSIZE;
-  }
-  return 0;
 }
 
 int vm_numpp(pde_t *pgdir,  uint sz)
@@ -332,6 +309,66 @@ clearpteu(pde_t *pgdir, char *uva)
   *pte &= ~PTE_U;
 }
 
+// Create PTEs for virtual addresses starting at va that refer to
+// physical addresses starting at pa. va and size might not
+// be page-aligned.
+static int
+mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+{
+  char *a, *last;
+  pte_t *pte;
+
+  a = (char*)PGROUNDDOWN((uint)va);
+  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+  for(;;){
+    if((pte = walkpgdir(pgdir, a, 1)) == 0)
+      return -1;
+    if(*pte & PTE_P)
+      panic("remap");
+    *pte = pa | perm | PTE_P;
+    if(a == last)
+      break;
+    a += PGSIZE;
+    pa += PGSIZE;
+  }
+  return 0;
+}
+
+// // Given a parent process's page table, create a copy
+// // of it for a child.
+// pde_t*
+// copyuvm(pde_t *pgdir, uint sz)
+// {
+//   pde_t *d;
+//   pte_t *pte;
+//   uint pa, i, flags;
+//   char *mem;
+
+//   if((d = setupkvm()) == 0)
+//     return 0;
+//   for(i = 0; i < sz; i += PGSIZE){
+//     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+//       panic("copyuvm: pte should exist");
+//     if(!(*pte & PTE_P))
+//       panic("copyuvm: page not present");
+//     pa = PTE_ADDR(*pte);
+//     flags = PTE_FLAGS(*pte);
+//     if((mem = kalloc()) == 0)
+//       goto bad;
+//     memmove(mem, (char*)P2V(pa), PGSIZE);
+//     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+//       kfree(mem);
+//       goto bad;
+//     }
+//   }
+//   return d;
+
+// bad:
+//   freevm(d);
+//   return 0;
+// }
+
+
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
@@ -349,22 +386,40 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
       panic("copyuvm: page not present");
+    if (!(0b11111111111111111111111111111101==~PTE_W)) panic("bas aise hi");// for confidence :)
+    *pte = *pte & ~PTE_W;
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto bad;
-    memmove(mem, (char*)P2V(pa), PGSIZE);
-    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
-      kfree(mem);
+    if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
+      panic("copyuvm\n");
       goto bad;
     }
   }
+  lcr3(V2P(pgdir));
   return d;
 
 bad:
   freevm(d);
   return 0;
 }
+
+int if_mmap_T_PGFLT(pde_t *pgdir, const void *va)
+{
+    //returns 1 if page was not present, i.e. mmap pagefault
+    pte_t *pte;
+    pte=walkpgdir(pgdir, va, 0);
+    return !(*pte & PTE_P);
+}
+
+int if_read_T_PGFLT(pde_t *pgdir, const void *va)
+{
+    //returns 1 if page was not present, i.e. mmap pagefault
+    pte_t *pte;
+    pte=walkpgdir(pgdir, va, 0);
+    return !(*pte & PTE_W);
+}
+
+
 
 //PAGEBREAK!
 // Map user virtual address to kernel address.

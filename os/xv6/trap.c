@@ -79,9 +79,21 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
     struct proc* curproc=myproc();
+    pte_t *pte;
     uint addr=PGROUNDDOWN(rcr2());
+    int mmap_flt=if_mmap_T_PGFLT(curproc->pgdir, (void*)addr);
+    // cprintf("condition: %d", cond);
+    if (mmap_flt)
+    {
     allocuvm(curproc->pgdir,  addr, addr+PGSIZE);
     switchuvm(curproc);
+    }
+    int read_flt=if_read_T_PGFLT(curproc->pgdir, (void*)addr);
+    if (read_flt)
+    {
+      // panic("");
+      // cprintf("areey yarr!!\n");// check the correctness till here
+    };
     break;
   //PAGEBREAK: 13
   default:

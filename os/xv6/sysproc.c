@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+
 int sys_fork(void)
 {
   return fork();
@@ -204,5 +205,5 @@ int sys_getpp(void)
 
 int sys_getNumFreePages(void)
 {
-  return -1;
+  return gettingNumFreePages();
 }

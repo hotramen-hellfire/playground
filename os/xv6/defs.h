@@ -69,7 +69,8 @@ char*           kalloc(void);
 void            kfree(char*);
 void            kinit1(void*, void*);
 void            kinit2(void*, void*);
-
+int             gettingNumFreePages(void);
+static          void ref_update(char* this_run, int increment);
 // kbd.c
 void            kbdintr(void);
 
@@ -190,7 +191,8 @@ void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
 int             vm_numpp(pde_t *pgdir,  uint sz);
-
+int             if_mmap_T_PGFLT(pde_t *pgdir, const void *va);
+int             if_read_T_PGFLT(pde_t *pgdir, const void *va);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
