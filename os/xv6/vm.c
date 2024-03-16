@@ -334,41 +334,6 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
   return 0;
 }
 
-// // Given a parent process's page table, create a copy
-// // of it for a child.
-// pde_t*
-// copyuvm(pde_t *pgdir, uint sz)
-// {
-//   pde_t *d;
-//   pte_t *pte;
-//   uint pa, i, flags;
-//   char *mem;
-
-//   if((d = setupkvm()) == 0)
-//     return 0;
-//   for(i = 0; i < sz; i += PGSIZE){
-//     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
-//       panic("copyuvm: pte should exist");
-//     if(!(*pte & PTE_P))
-//       panic("copyuvm: page not present");
-//     pa = PTE_ADDR(*pte);
-//     flags = PTE_FLAGS(*pte);
-//     if((mem = kalloc()) == 0)
-//       goto bad;
-//     memmove(mem, (char*)P2V(pa), PGSIZE);
-//     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
-//       kfree(mem);
-//       goto bad;
-//     }
-//   }
-//   return d;
-
-// bad:
-//   freevm(d);
-//   return 0;
-// }
-
-
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
@@ -386,22 +351,58 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
       panic("copyuvm: page not present");
-    if (!(0b11111111111111111111111111111101==~PTE_W)) panic("bas aise hi");// for confidence :)
-    *pte = *pte & ~PTE_W;
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
-    if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
-      panic("copyuvm\n");
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+      kfree(mem);
       goto bad;
     }
   }
-  lcr3(V2P(pgdir));
   return d;
 
 bad:
   freevm(d);
   return 0;
 }
+
+
+// // Given a parent process's page table, create a copy
+// // of it for a child.
+// pde_t*
+// copyuvm(pde_t *pgdir, uint sz)
+// {
+//   pde_t *d;
+//   pte_t *pte;
+//   uint pa, i, flags;
+//   char *mem;
+
+//   if((d = setupkvm()) == 0)
+//     return 0;
+//   for(i = 0; i < sz; i += PGSIZE){
+//     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+//       panic("copyuvm: pte should exist");
+//     if(!(*pte & PTE_P))
+//       panic("copyuvm: page not present");
+//     *pte = *pte & ~PTE_W;
+//     pa = PTE_ADDR(*pte);
+//     flags = PTE_FLAGS(*pte);
+//     update_ref(pa, 1);//increase the number of refrences at pa
+//     if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
+//       panic("copyuvm\n");
+//       goto bad;
+//     }
+//   }
+//   lcr3(V2P(pgdir));
+//   return d;
+
+// bad:
+//   freevm(d);
+//   lcr3(V2P(pgdir));
+//   return 0;
+// }
 
 int if_mmap_T_PGFLT(pde_t *pgdir, const void *va)
 {
@@ -419,6 +420,31 @@ int if_read_T_PGFLT(pde_t *pgdir, const void *va)
     return !(*pte & PTE_W);
 }
 
+void handle_cow_flt(pde_t *pgdir, const void *va)
+{
+  //firstly wel'll check how many refrences does the corresponding pa has,
+  // if ref>1
+  //  something();
+  //else 
+  // change the write flag and return
+  pte_t *pte=pte=walkpgdir(pgdir, va, 0);
+  char* mem;
+  uint pa = PTE_ADDR(*pte);
+  uint flags = PTE_FLAGS(*pte);
+  if (get_ref(pa)<=1)
+  {
+    //change the flag to writeable
+    *pte = *pte | PTE_W;
+  }
+  else
+  {
+    cprintf("amrika ke dalal!!, %d\n", (uint)va);
+    update_ref(pa,0);
+  }
+    amrika:
+    lcr3(V2P(pgdir));
+    return;
+}
 
 
 //PAGEBREAK!

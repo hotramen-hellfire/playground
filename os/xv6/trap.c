@@ -78,9 +78,10 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
+    //shud check if pa<PHYSTOP
     struct proc* curproc=myproc();
     pte_t *pte;
-    uint addr=PGROUNDDOWN(rcr2());
+    uint addr=PGROUNDDOWN(rcr2());// this is the virtual address
     int mmap_flt=if_mmap_T_PGFLT(curproc->pgdir, (void*)addr);
     // cprintf("condition: %d", cond);
     if (mmap_flt)
@@ -88,12 +89,13 @@ trap(struct trapframe *tf)
     allocuvm(curproc->pgdir,  addr, addr+PGSIZE);
     switchuvm(curproc);
     }
-    int read_flt=if_read_T_PGFLT(curproc->pgdir, (void*)addr);
-    if (read_flt)
-    {
-      // panic("");
-      // cprintf("areey yarr!!\n");// check the correctness till here
-    };
+    // int read_flt=if_read_T_PGFLT(curproc->pgdir, (void*)addr);
+    // if (read_flt)
+    // {
+    //   // panic("");
+    //   // cprintf("areey yarr!!\n");// check the correctness till here
+    //   handle_cow_flt(curproc->pgdir, (void*)addr);
+    // };
     break;
   //PAGEBREAK: 13
   default:

@@ -120,3 +120,20 @@ kalloc(void)
     release(&kmem.lock);
   return (char*)r;
 }
+
+int get_ref(uint pa)
+{
+  return refs_count[pa/PGSIZE];
+}
+
+void update_ref(uint pa, int increment)
+{
+  if(kmem.use_lock)
+    acquire(&kmem.lock);
+    refs_count[pa/PGSIZE]+=increment;
+    if (refs_count[pa/PGSIZE]<1) kfree((char*)pa);
+    // cprintf("moo\n");
+  if(kmem.use_lock)
+    release(&kmem.lock);
+    return;
+}
