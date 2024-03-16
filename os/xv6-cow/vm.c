@@ -327,19 +327,23 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
       panic("copyuvm: page not present");
+    *pte=*pte& ~PTE_W; ///UPDATE THE FLAG TO RDONLY
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto bad;
-    memmove(mem, (char*)P2V(pa), PGSIZE);
-    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+    // if((mem = kalloc()) == 0)
+    //   goto bad;
+    // memmove(mem, (char*)P2V(pa), PGSIZE);
+    increase_ref(pa);
+    if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
       kfree(mem);
       goto bad;
     }
   }
+  lcr3(V2P(pgdir));
   return d;
 
 bad:
+  lcr3(V2P(pgdir));
   freevm(d);
   return 0;
 }

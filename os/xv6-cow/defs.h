@@ -69,6 +69,7 @@ void            kfree(char*);
 void            kinit1(void*, void*);
 void            kinit2(void*, void*);
 int             getNumFreePages(void);
+void            increase_ref(uint pa);
 
 // kbd.c
 void            kbdintr(void);

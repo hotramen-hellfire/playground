@@ -124,14 +124,21 @@ kalloc(void)
   return (char*)r;
 }
 
-// void update_ref(uint pa, int increment)
-// {
-//   if(kmem.use_lock)
-//     acquire(&kmem.lock);
-//   refs_count[pa/PGSIZE]+=increment;
-//   if (refs_count[pa/PGSIZE]==0) panic("update_ref");
-//     // cprintf("moo\n");
-//   if(kmem.use_lock)
-//     release(&kmem.lock);
-//     return;
-// }
+void increase_ref(uint pa)
+{
+  if(kmem.use_lock)
+    acquire(&kmem.lock);
+  if (pa>PHYSTOP)
+  {
+    panic("increase_ref1");
+  }
+  if (refs_count[pa/PGSIZE]<0) panic("gajab baat hai: increase_ref2");
+  if (refs_count[pa/PGSIZE]==0)
+  {
+    refs_count[pa/PGSIZE]=1;// give it a new entry for now
+    // panic("increase_ref2");
+  }
+  refs_count[pa/PGSIZE]+=1;
+  if(kmem.use_lock)
+    release(&kmem.lock);
+}
