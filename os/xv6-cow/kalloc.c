@@ -21,7 +21,13 @@ struct {
   struct spinlock lock;
   int use_lock;
   struct run *freelist;
+  int numFreePages;
 } kmem;
+
+int getNumFreePages(void)
+{
+  return kmem.numFreePages;
+}
 
 // Initialization happens in two phases.
 // 1. main() calls kinit1() while still using entrypgdir to place just
@@ -31,6 +37,7 @@ struct {
 void
 kinit1(void *vstart, void *vend)
 {
+  kmem.numFreePages=0;
   initlock(&kmem.lock, "kmem");
   kmem.use_lock = 0;
   freerange(vstart, vend);
@@ -72,6 +79,7 @@ kfree(char *v)
   r = (struct run*)v;
   r->next = kmem.freelist;
   kmem.freelist = r;
+  kmem.numFreePages++;
   if(kmem.use_lock)
     release(&kmem.lock);
 }
@@ -87,8 +95,10 @@ kalloc(void)
   if(kmem.use_lock)
     acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r){
     kmem.freelist = r->next;
+    kmem.numFreePages--;
+  }
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;

@@ -7,6 +7,7 @@ int main(void)
 {
 	int pid;
 	int numInitialFreePageParent = getNumFreePages();
+	printf(1, "getNumFreePages=%d\n", getNumFreePages());
 	pid = fork();
 	if (pid == 0)
 	{

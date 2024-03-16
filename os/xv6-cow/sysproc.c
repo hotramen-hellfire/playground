@@ -92,5 +92,5 @@ sys_uptime(void)
 
 int sys_getNumFreePages(void)
 {
-  return -1;
+  return getNumFreePages();
 }
