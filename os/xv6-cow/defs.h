@@ -70,7 +70,7 @@ void            kinit1(void*, void*);
 void            kinit2(void*, void*);
 int             getNumFreePages(void);
 void            increase_ref(uint pa);
-
+int             get_ref(uint pa);
 // kbd.c
 void            kbdintr(void);
 
@@ -187,6 +187,8 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
-
+int             if_read_T_PGFLT(pde_t *pgdir, const void *va);
+int             if_present_T_PGFLT(pde_t* pgdir, const void *va);
+int            _handle_T_PGFLT_COW(pde_t *pgdir, uint va);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

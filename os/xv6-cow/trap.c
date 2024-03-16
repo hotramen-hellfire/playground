@@ -78,7 +78,15 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-    panic("caught T_PGFLT");
+    cprintf("newpgflt\n");
+    struct proc* curproc=myproc();
+    uint vaddr=PGROUNDDOWN(rcr2());// this is the virtual address
+    int read_flt=if_read_T_PGFLT(curproc->pgdir, (void*)vaddr);
+    int present_flt=if_present_T_PGFLT(curproc->pgdir, (void*)vaddr);
+    // if (!present_flt) {cprintf("not present T_PGFLT"); break;}
+    if (!read_flt) panic("present but not cow T_PGFLT");
+    // else panic("caught cow T_PGFLT");
+    if (read_flt) _handle_T_PGFLT_COW(curproc->pgdir, vaddr);
     break;
   //PAGEBREAK: 13
   default:

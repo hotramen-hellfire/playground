@@ -142,3 +142,27 @@ void increase_ref(uint pa)
   if(kmem.use_lock)
     release(&kmem.lock);
 }
+
+void decrease_ref(uint pa)
+{
+  if(kmem.use_lock)
+    acquire(&kmem.lock);
+  if (pa>PHYSTOP)
+  {
+    panic("decrease_ref1");
+  }
+  if (refs_count[pa/PGSIZE]<0) panic("gajab baat hai: decrease_ref2");
+  if (refs_count[pa/PGSIZE]==0)
+  {
+    // refs_count[pa/PGSIZE]=1;// give it a new entry for now
+    panic("decrease_ref2");
+  }
+  refs_count[pa/PGSIZE]-=1;
+  if(kmem.use_lock)
+    release(&kmem.lock);
+}
+
+int get_ref(uint pa)
+{
+  return refs_count[pa/PGSIZE];
+}

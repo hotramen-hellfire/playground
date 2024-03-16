@@ -310,6 +310,24 @@ clearpteu(pde_t *pgdir, char *uva)
   *pte &= ~PTE_U;
 }
 
+int if_present_T_PGFLT(pde_t* pgdir, const void *va)
+{
+    pte_t *pte;
+    pte=walkpgdir(pgdir, va, 0);
+    uint flags=PTE_FLAGS(pte);
+    // cprintf("flags: %d\n", flags);
+    return !(*pte & PTE_P);
+}
+
+int if_read_T_PGFLT(pde_t *pgdir, const void *va)
+{
+    //returns 1 if page was not present, i.e. mmap pagefault
+    pte_t *pte;
+    pte=walkpgdir(pgdir, va, 0);
+    uint flags=PTE_FLAGS(pte);
+    // cprintf("flags: %d\n", flags);
+    return !(*pte & PTE_W);
+}
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
@@ -327,16 +345,31 @@ copyuvm(pde_t *pgdir, uint sz)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
       panic("copyuvm: page not present");
-    *pte=*pte& ~PTE_W; ///UPDATE THE FLAG TO RDONLY
-    pa = PTE_ADDR(*pte);
-    flags = PTE_FLAGS(*pte);
-    // if((mem = kalloc()) == 0)
-    //   goto bad;
-    // memmove(mem, (char*)P2V(pa), PGSIZE);
-    increase_ref(pa);
-    if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
-      kfree(mem);
-      goto bad;
+    //only for user pages
+    if (*pte & PTE_U){
+      *pte=*pte& ~PTE_W; ///UPDATE THE FLAG TO RDONLY
+      pa = PTE_ADDR(*pte);
+      flags = PTE_FLAGS(*pte);
+      // if((mem = kalloc()) == 0)
+      //   goto bad;
+      // memmove(mem, (char*)P2V(pa), PGSIZE);
+      increase_ref(pa);
+      if(mappages(d, (void*)i, PGSIZE, pa, flags) < 0) {
+        kfree(mem);
+        goto bad;
+      }
+    }
+    else
+    {
+      pa = PTE_ADDR(*pte);
+      flags = PTE_FLAGS(*pte);
+      if((mem = kalloc()) == 0)
+        goto bad;
+      memmove(mem, (char*)P2V(pa), PGSIZE);
+      if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+        kfree(mem);
+        goto bad;
+      }
     }
   }
   lcr3(V2P(pgdir));
@@ -346,6 +379,42 @@ bad:
   lcr3(V2P(pgdir));
   freevm(d);
   return 0;
+}
+
+int _handle_T_PGFLT_COW(pde_t *pgdir, uint va){
+    pte_t* pte=walkpgdir(pgdir, (char*)va, 0);
+    uint pa=PTE_ADDR(*pte);
+    uint flags=PTE_FLAGS(*pte);
+    if (pa>PHYSTOP)
+    {
+      panic("_handle_T_PGFLT_COW 1");
+    }
+    if (get_ref(pa)<=1)
+    {
+      // if (get_ref(pa)==0) panic("_handle_T_PGFLT_COW 3");
+      if (get_ref(pa)==0) return -1;
+      //simply change the permission
+      *pte = *pte | PTE_W;
+      lcr3(V2P(pgdir));
+      return 0;
+    }
+    else
+    {
+      // panic("_handle_T_PGFLT_COW 2");
+      //here we will have to kalloc and make a new page for the curproc
+      char *mem;
+      flags=flags|PTE_W;
+      if((mem = kalloc()) == 0)
+        goto ends;
+      // if (get_ref((uint) mem)!=0) panic("_handle_T_PGFLT_COW 4");
+      memmove(mem, (char*)P2V(pa), PGSIZE);
+      *pte =  PTE_U | PTE_W | PTE_P | V2P(mem);
+      lcr3(V2P(pgdir));
+      return 0;
+    }
+    ends:
+    lcr3(V2P(pgdir));
+    return -1;
 }
 
 //PAGEBREAK!
@@ -374,6 +443,9 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
 
   buf = (char*)p;
   while(len > 0){
+    if(_handle_T_PGFLT_COW(pgdir,va0)<0){
+      return -1;
+    }
     va0 = (uint)PGROUNDDOWN(va);
     pa0 = uva2ka(pgdir, (char*)va0);
     if(pa0 == 0)
