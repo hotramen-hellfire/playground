@@ -24,6 +24,8 @@ struct {
   int numFreePages;
 } kmem;
 
+int refs_count[PHYSTOP/PGSIZE];
+
 int getNumFreePages(void)
 {
   return kmem.numFreePages;
@@ -56,7 +58,10 @@ freerange(void *vstart, void *vend)
   char *p;
   p = (char*)PGROUNDUP((uint)vstart);
   for(; p + PGSIZE <= (char*)vend; p += PGSIZE)
+  {
+    refs_count[(uint)p/PGSIZE]=1; 
     kfree(p);
+  }
 }
 //PAGEBREAK: 21
 // Free the page of physical memory pointed at by v,
@@ -72,14 +77,25 @@ kfree(char *v)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
-  memset(v, 1, PGSIZE);
-
+  // we will have to andle the edge when 2 or more threrads call kfree at the same time, nothing equality exact with threads
+  
   if(kmem.use_lock)
     acquire(&kmem.lock);
-  r = (struct run*)v;
-  r->next = kmem.freelist;
-  kmem.freelist = r;
-  kmem.numFreePages++;
+
+  if (refs_count[(uint)v/PGSIZE]<=1)
+  {
+    if (refs_count[(uint)v/PGSIZE]==0) panic("kfree2");
+    memset(v, 1, PGSIZE);
+    refs_count[(uint)v/PGSIZE]=0;
+    r = (struct run*)v;
+    r->next = kmem.freelist;
+    kmem.freelist = r;
+    kmem.numFreePages++;
+  }
+  else
+  {
+    refs_count[(uint)v/PGSIZE]-=1;
+  }
   if(kmem.use_lock)
     release(&kmem.lock);
 }
@@ -95,12 +111,27 @@ kalloc(void)
   if(kmem.use_lock)
     acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r){
+  if(r)
+  {
     kmem.freelist = r->next;
     kmem.numFreePages--;
+    
+    if (refs_count[(uint)r/PGSIZE]==0) refs_count[(uint)r/PGSIZE]=1;
+    else panic("kalloc");
   }
   if(kmem.use_lock)
     release(&kmem.lock);
   return (char*)r;
 }
 
+// void update_ref(uint pa, int increment)
+// {
+//   if(kmem.use_lock)
+//     acquire(&kmem.lock);
+//   refs_count[pa/PGSIZE]+=increment;
+//   if (refs_count[pa/PGSIZE]==0) panic("update_ref");
+//     // cprintf("moo\n");
+//   if(kmem.use_lock)
+//     release(&kmem.lock);
+//     return;
+// }
