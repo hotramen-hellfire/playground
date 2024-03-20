@@ -20,7 +20,6 @@ int main(void)
   else
     exit();
 
-  printf(1,"current free pages: %d\n", getNumFreePages());
   
   ret = mmap(4096);
   
@@ -36,27 +35,46 @@ int main(void)
     printf(1, "After access of one page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
   }
 
-  printf(1, "current free pages: %d\n", getNumFreePages());
-
   ret = mmap(8192);
+  int ret1=fork();
 
-  if(ret == 0 )
-    printf(1, "mmap failed\n");
-  else {
-    printf(1, "After mmap two pages: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+  if (ret1==0)
+  {
+    if(ret == 0 )
+      printf(1, "mmap failed\n");
+    else {
+      printf(1, "After mmap two pages: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
 
-    char *addr = (char *) ret;
+      char *addr = (char *) ret;
 
-    addr[0] = 'a';
-    
-    printf(1, "After access of first page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
-    addr[8000] = 'a';
+      addr[0] = 'a';
+      
+      printf(1, "After access of first page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+      addr[8000] = 'a';
 
-    printf(1, "After access of second page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+      printf(1, "After access of second page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+    }
+
+
+    exit();
+  }else
+  {
+    wait();
+    printf(1, "the child has ended, this demonstrates pefect working on fork!!\n");
+    if(ret == 0 )
+      printf(1, "mmap failed\n");
+    else {
+      printf(1, "After mmap two pages: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+
+      char *addr = (char *) ret;
+
+      addr[0] = 'a';
+      
+      printf(1, "After access of first page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+      addr[8000] = 'a';
+
+      printf(1, "After access of second page: memory usage in pages: virtual: %d, physical %d\n", getvp(), getpp());
+    }
+    exit();
   }
-
-  printf(1, "current free pages: %d\n", getNumFreePages());
-
-  exit();
- 
 }

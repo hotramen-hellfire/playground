@@ -58,6 +58,7 @@ int sys_mmap(void)
   if (n<0 || n%PGSIZE) return 0;
   int addr=myproc()->sz;
   myproc()->sz+=n;
+  _initMMAP((void*)addr);
   return addr;
 }
 

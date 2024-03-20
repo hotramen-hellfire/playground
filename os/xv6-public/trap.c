@@ -45,7 +45,32 @@ trap(struct trapframe *tf)
       exit();
     return;
   }
-
+  if(tf->trapno == T_PGFLT)
+  {
+    uint va=(uint)PGROUNDDOWN(rcr2());
+    _handleTheCow(va);
+    lcr3(V2P(myproc()->pgdir));
+    return;
+  }
+  //   if(tf->trapno == T_PGFLT)
+  // {
+  //   // cprintf("Hi\n");
+  //   char* mem;
+  //   uint va = rcr2();
+  //   if(check_CoW_bit_set_or_not(myproc(), va))
+  //   {
+  //     // cprintf("CoW Page found...\n");
+  //     make_a_copy_of_physical_frame_at_this_va_and_remove_CoW_bit_and_set_W_bit(myproc(), va);
+  //     lcr3(V2P(myproc()->pgdir));
+  //   }
+  //   else
+  //   {
+  //     cprintf("Write on Read only page!\n");
+  //     myproc()->killed = 1;
+  //     exit();
+  //   }
+  //   return;
+  // }
   switch(tf->trapno){
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
@@ -75,11 +100,6 @@ trap(struct trapframe *tf)
   case T_IRQ0 + IRQ_SPURIOUS:
     cprintf("cpu%d: spurious interrupt at %x:%x\n",
             cpuid(), tf->cs, tf->eip);
-    lapiceoi();
-    break;
-  case T_PGFLT:
-    // this is the virtual address
-    _handleMMAP((void*)PGROUNDDOWN(rcr2()));
     lapiceoi();
     break;
   //PAGEBREAK: 13

@@ -8,7 +8,6 @@ struct rtcdate;
 struct spinlock;
 struct sleeplock;
 struct stat;
-struct processInfo;
 struct superblock;
 
 // bio.c
@@ -69,10 +68,11 @@ char*           kalloc(void);
 void            kfree(char*);
 void            kinit1(void*, void*);
 void            kinit2(void*, void*);
-int             gettingNumFreePages(void);
-void            update_ref(uint pa, int increment);
-static          void ref_update(char* this_run, int increment);
+int             getNumFreePages(void);
+void            increase(uint pa);
+void            decrease(uint pa);
 int             get_ref(uint pa);
+
 // kbd.c
 void            kbdintr(void);
 
@@ -124,9 +124,6 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int             getMaxPid(void);
-int             getNumProc(void);
-int             getProcInfoSrc(int pid, struct processInfo *pinfo);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -178,8 +175,6 @@ void            uartintr(void);
 void            uartputc(int);
 
 // vm.c
-void            _handleMMAP(void *addr);//this is the cirtual address which is to be mapped
-void            _initMMAP(void *addr);//this is the cirtual address which is to be mapped
 void            seginit(void);
 void            kvmalloc(void);
 pde_t*          setupkvm(void);
@@ -194,11 +189,8 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
-int             vm_numpp(pde_t *pgdir,  uint sz);
-int             if_mmap_T_PGFLT(pde_t *pgdir, const void *va);
-int             if_read_T_PGFLT(pde_t *pgdir, const void *va);
-void            handle_cow_flt(pde_t *pgdir, const void *va);
-
-
+void            _handleTheCow(uint va);
+void            make_a_copy_of_physical_frame_at_this_va_and_remove_CoW_bit_and_set_W_bit(struct proc* currproc, uint va);
+int             check_CoW_bit_set_or_not(struct proc* currproc, uint va);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

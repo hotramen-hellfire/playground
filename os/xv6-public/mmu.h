@@ -78,6 +78,7 @@ struct segdesc {
 
 // construct virtual address from indexes and offset
 #define PGADDR(d, t, o) ((uint)((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
+
 // Page directory and page table constants.
 #define NPDENTRIES      1024    // # directory entries per page directory
 #define NPTENTRIES      1024    // # PTEs per page table
@@ -94,7 +95,7 @@ struct segdesc {
 #define PTE_W           0x002   // Writeable
 #define PTE_U           0x004   // User
 #define PTE_PS          0x080   // Page Size
-#define PTE_LZY         0x800  //Lazy Bit
+#define PTE_COW         0x800   //COW bit
 
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
