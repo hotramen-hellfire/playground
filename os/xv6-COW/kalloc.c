@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
-#include "mmu.h"
+#include "mmu.h"///;euf;ebg;sjbg
 #include "spinlock.h"
 
 void freerange(void *vstart, void *vend);
@@ -29,7 +29,6 @@ int getNumFreePages(void)
 {
     if (kmem.use_lock) acquire(&kmem.lock);
     int ret = kmem.numfreepages;
-    // int ret =0;
     if (kmem.use_lock) release(&kmem.lock);
     return ret;
 }
@@ -131,19 +130,6 @@ void increase(uint pa)
   return;
 }
 
-void decrease(uint pa)
-{
-  // if(pa % PGSIZE || v < end || pa>= PHYSTOP)
-  //   panic("decrease 1");
-  if(kmem.use_lock)
-    acquire(&kmem.lock);
-  if (kmem.refcount[pa/PGSIZE]<=1) panic("decrease 2");// 1 should have been handled in _handleTheCow itself;
-  kmem.refcount[pa/PGSIZE]--;
-  if(kmem.use_lock)
-    release(&kmem.lock);
-  return;
-}
-
 int get_ref(uint pa){
   if(kmem.use_lock)
     acquire(&kmem.lock);
@@ -152,6 +138,3 @@ int get_ref(uint pa){
     release(&kmem.lock);
   return ret;
 }
-
-
-

@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
-#include "mp.h"
+#include "mp.h"//;ig;sg ;gesg l g;
 #include "x86.h"
 #include "mmu.h"
 #include "proc.h"

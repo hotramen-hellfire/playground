@@ -70,7 +70,6 @@ void            kinit1(void*, void*);
 void            kinit2(void*, void*);
 int             getNumFreePages(void);
 void            increase(uint pa);
-void            decrease(uint pa);
 int             get_ref(uint pa);
 
 // kbd.c
