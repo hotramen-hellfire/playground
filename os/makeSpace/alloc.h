@@ -42,7 +42,8 @@ void dealloc(char * ptr)
     }
     if ((int)(ptr-(char*)paper_point->base_ptr)>PAGESIZE-1)
     {
-        return;
+        printf("no chunk to dealloc()!!\n");
+        return;// can't dealloc an address which is not in the page
     }
     struct chunk* current_chunk = paper_point->start_chunk;
     struct chunk* prev_chunk = 0x0;
@@ -58,8 +59,8 @@ void dealloc(char * ptr)
                 //coalesce
                 current_chunk->size=current_chunk->next_chunk->size+current_chunk->size;
                 struct chunk* to_be_deleted = current_chunk->next_chunk;
-                current_chunk->next_chunk=current_chunk->next_chunk->next_chunk;
                 //start offset remains the same
+                current_chunk->next_chunk=current_chunk->next_chunk->next_chunk;
                 //free the next chunk
                 free(to_be_deleted);
             }
