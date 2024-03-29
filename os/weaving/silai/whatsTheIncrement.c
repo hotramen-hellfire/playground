@@ -7,15 +7,18 @@ int counter=COUNTER;
 pthread_mutex_t mutex;
 int _inc_counter(void)
 {
+	// int ncounter=COUNTER;
 	while (1) 
 	{
 		pthread_mutex_lock(&mutex);
 		if (counter<=0) 
 		{
 			pthread_mutex_unlock(&mutex);
+			// printf("ncounter: %d\n", ncounter);
 			break;
 		}
 		counter--;
+		// ncounter--;
 		pthread_mutex_unlock(&mutex);
 	}
 	pthread_exit(NULL);
