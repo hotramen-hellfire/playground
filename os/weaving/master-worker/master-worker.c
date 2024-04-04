@@ -54,7 +54,7 @@ void *generate_requests_loop(void *data)
       print_produced1(item_to_produce, thread_id, curr_buf_size-1);
       print_produced(item_to_produce, thread_id);
       item_to_produce++;
-      pthread_cond_broadcast(&worker_sleeps);//the master might be sleeping/ one of the masters pick up
+      pthread_cond_broadcast(&worker_sleeps);//the worker might be sleeping/ one of the workers pick up
       pthread_mutex_unlock(&buff_lock);
     }
   return 0;
@@ -138,11 +138,10 @@ int main(int argc, char *argv[])
     }
   
   pthread_mutex_lock(&buff_lock);
-  pthread_cond_broadcast(&worker_sleeps);//the master might be sleeping/ one of the masters pick up
+  pthread_cond_broadcast(&worker_sleeps);//the worker might be sleeping/ one of the workers pick up
   masters_exit=1;
   pthread_mutex_unlock(&buff_lock);
   
-  // printf("hwew\n");
   //wait for all threads to complete
   for (i = 0; i < num_workers; i++)
     {
