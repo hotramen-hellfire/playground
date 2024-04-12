@@ -33,6 +33,16 @@ int evaluatesequence(vector<int> sequence, int ball, int posn, const vector<vect
     }
     return peak_memory;
 }
+
+int maxh(long long num, int n)
+{
+    int ret=0;
+    for (int i=n-1; i>=0; i--)
+    {
+        if ((((1 << i) & num) == (1 << i)) && ret!=0) {ret=i;};
+    }
+    return ret;
+}
 int main()
 {
     int a;
@@ -60,7 +70,7 @@ int main()
             continue;
         for (int i = 0; i < sequence[ss].size(); i++)
             positions[sequence[ss][i]] = i;
-        for (int newel = 0; newel < n; newel++)///scope
+        for (int newel = maxh(ss, n); newel < n; newel++)///scope
         {
             // now check can a topo sort be constructed??
             bool isValid = true;
