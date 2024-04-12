@@ -1,0 +1,16 @@
+This is a corrupted email.txt file.
+It has some email addresses with their types.
+Some lines may have more than one pair of email and type.
+Here are some examples:
+michael@example.com:investor:someType
+test@example.com:investor:someType
+invalidemail:friend:someType
+anotherinvalidemail@:investor:someType
+anotherinvalidemail:investor:someType
+test@example.com:friend:someType
+randomtext:investor:someType
+randomtext@:investor:someType
+validemail@example.com:investor:someType
+invalidemail@example.org:investor:someType
+test@example.com:investor:someType
+test@example.!com:investor:someType
