@@ -3,33 +3,33 @@
 using namespace std;
 // do not pass oldopt(sequence) by refrence!!
 
-int evaluatesequence(vector<int> &sequence, vector<int> &oldK,int proc, int posn, const vector<vector<int>> &memory, vector<int> &newseq, vector<int> &newK)
+int evaluatesequence(vector<int> &sequence, vector<int> &oldK, int proc, int posn, const vector<vector<int>> &memory, vector<int> &newseq, vector<int> &newK)
 {
-    newseq=sequence;
-    newK=oldK;
+    newseq = sequence;
+    newK = oldK;
     newseq.insert(newseq.begin() + posn, proc);
-    newK.insert(newK.begin()+posn, 0);
+    newK.insert(newK.begin() + posn, 0);
     int peak_memory = 0;
-    //update the newK accordingly with the k values at for eachk
-        //use the previously computed values to compute this, initially i have stored 0 at the posn as done above
-        //try to keep the complexity to be o(n^2)
-        //proc is the process number
-        //posn is the position of the insertion
-        //memory is the ususal matrix
-    int backaccumulator=0;
-    for (int i=0; i<posn; i++)
+    // update the newK accordingly with the k values at for eachk
+    // use the previously computed values to compute this, initially i have stored 0 at the posn as done above
+    // proc is the process number
+    // posn is the position of the insertion
+    // memory is the ususal matrix
+    // this can be easily done in o(n)// see at7.cpp 
+    int backaccumulator = 0;
+    for (int i = 0; i < posn; i++)
     {
-        backaccumulator+=memory[newseq[i]][proc];
-        newK[i]+=backaccumulator;
+        backaccumulator += memory[newseq[i]][proc];
+        newK[i] += backaccumulator;
     }
-    int forwardaccumulator=0;
-    for (int i=newseq.size()-1; i>posn; i--)
+    int forwardaccumulator = 0;
+    for (int i = newseq.size() - 1; i > posn; i--)
     {
-        forwardaccumulator+=memory[proc][newseq[i]];
-        newK[i]+=forwardaccumulator;
+        forwardaccumulator += memory[proc][newseq[i]];
+        newK[i] += forwardaccumulator;
     }
     // we will do the nsq version update for now
-    int ovhd=0;
+    int ovhd = 0;
     for (int p = 0; p < posn; ++p)
     {
         for (int q = posn + 1; q < newseq.size(); ++q)
@@ -37,27 +37,24 @@ int evaluatesequence(vector<int> &sequence, vector<int> &oldK,int proc, int posn
             ovhd += memory[newseq[p]][newseq[q]];
         }
     }
-    newK[posn]=ovhd+forwardaccumulator+backaccumulator+memory[proc][proc];
-    for (int i=0; i<newseq.size(); i++) peak_memory=max(peak_memory, newK[i]);
+    newK[posn] = ovhd + forwardaccumulator + backaccumulator + memory[proc][proc];
+    for (int i = 0; i < newseq.size(); i++)
+        peak_memory = max(peak_memory, newK[i]);
     return peak_memory;
 }
 
 int maxh(long long num, int n)
 {
-    int ret=0;
-    for (int i=n-1; i>=0; i--)
+    int ret = 0;
+    for (int i = n - 1; i >= 0; i--)
     {
-        if ((((1 << i) & num) == (1 << i)) && ret!=0) {ret=i;};
+        if ((((1 << i) & num) == (1 << i)) && ret == 0)
+        {
+            ret = i;
+        };
     }
     return ret;
 }
-
-class Ks{
-    int back=0;
-    int forwd=0;
-    int ovhd=0;
-    int curr=0;
-};
 
 int main()
 {
@@ -81,20 +78,21 @@ int main()
     peaks[0] = 0;
     for (long long ss = 0; ss <= (1 << n) - 1; ss++)
     {
-        if (peaks[ss] == MATH_INFINITY)
+        if (peaks[ss] == MATH_INFINITY || ss == (1 << n) - 1)
             continue;
-        map<int, int> positions;
         for (auto seqss : sequence[ss])
         {
+            map<int, int> positions;
             for (int i = 0; i < seqss.first.size(); i++)
                 positions[seqss.first[i]] = i;
-            for (int newel = maxh(ss, n); newel < n; newel++) /// scope
+            for (int newel = 0; newel < n; newel++) /// scope
             {
                 // now check can a topo sort be constructed??
                 bool isValid = true;
                 int minposn = -1;
                 if (((1 << newel) & ss) == (1 << newel))
                     continue;
+                // std::cout<<std::bitset<17>(ss)<<" "<<std::bitset<17>((1 << newel))<<std::endl;
                 for (int col = 0; col < newel; col++)
                 {
                     if (memory[col][newel] > 0)
@@ -111,7 +109,6 @@ int main()
                 }
                 if (isValid == false)
                 {
-                    assert(peaks[((1 << newel) | ss)] == MATH_INFINITY);
                     continue;
                 }
                 else
@@ -122,36 +119,36 @@ int main()
                     vector<int> newsequence;
                     vector<int> newK;
                     int bestvalue = peaks[((1 << newel) | ss)];
-                    for (int idx=prevseq.size(); idx>minposn; idx--)
+                    for (int idx = prevseq.size(); idx > minposn; idx--)
                     {
                         int value = evaluatesequence(prevseq, prevks, newel, idx, memory, newsequence, newK);
-                        if (value<bestvalue)
+                        if (value < bestvalue)
                         {
-                            bestvalue=value;
+                            bestvalue = value;
                             newseqsK.clear();
                             newseqsK.push_back(pair(newsequence, newK));
                         }
-                        // else if (value==bestvalue)
-                        // {
-                        //     newseqsK.push_back(pair(newsequence, newK));
-                        // }
+                        else if (value == bestvalue)
+                        {
+                            newseqsK.push_back(pair(newsequence, newK));
+                        }
                     }
-                    if (bestvalue< peaks[((1 << newel) | ss)])
+                    if (bestvalue < peaks[((1 << newel) | ss)])
                     {
                         peaks[((1 << newel) | ss)] = bestvalue;
                         sequence[((1 << newel) | ss)].clear();
-                        for (auto newseqK:newseqsK)
+                        for (auto newseqK : newseqsK)
                         {
                             sequence[((1 << newel) | ss)].push_back(newseqK);
                         }
                     }
-                    // else if (bestvalue==peaks[((1 << newel) | ss)])
-                    // {
-                    //     for (auto newseqK:newseqsK)
-                    //     {
-                    //         sequence[((1 << newel) | ss)].push_back(newseqK);
-                    //     }
-                    // }
+                    else if (bestvalue == peaks[((1 << newel) | ss)])
+                    {
+                        for (auto newseqK : newseqsK)
+                        {
+                            sequence[((1 << newel) | ss)].push_back(newseqK);
+                        }
+                    }
                 }
             }
         }

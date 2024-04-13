@@ -38,8 +38,8 @@ int evaluatesequence(vector<int> &sequence, vector<Ks> &oldK, int proc, int posn
     int peak_memory = 0;
     int ovhd = 0;
     int t2 = 0;
-    int oh1 = 0;
     int t3 = 0;
+    int oh1 = 0;
     int oh2 = 0;
     if (posn != 0)
     {
@@ -79,7 +79,7 @@ int maxh(long long num, int n)
     int ret = 0;
     for (int i = n - 1; i >= 0; i--)
     {
-        if ((((1 << i) & num) == (1 << i)) && ret != 0)
+        if ((((1 << i) & num) == (1 << i)) && ret == 0)
         {
             ret = i;
         };
@@ -117,23 +117,19 @@ int main()
         }
         memory.push_back(t1);
     }
-    vector<int> bestbysize(n + 1, MATH_INFINITY); // size varies from 0 to n
     vector<int> peaks((1 << n), MATH_INFINITY);
     vector<vector<pair<vector<int>, vector<Ks>>>> sequence((1 << n), vector<pair<vector<int>, vector<Ks>>>{pair(vector<int>{}, vector<Ks>{})});
     peaks[0] = 0;
-    bestbysize[0] = 0;
     for (long long ss = 0; ss <= (1 << n) - 1; ss++)
     {
-        int setsize = givesetsize(ss, n);
-        // if (peaks[ss]!=bestbysize[setsize]) continue;
         if (peaks[ss] == MATH_INFINITY)
             continue;
-        map<int, int> positions;
         for (auto seqss : sequence[ss])
         {
+            map<int, int> positions;
             for (int i = 0; i < seqss.first.size(); i++)
                 positions[seqss.first[i]] = i;
-            for (int newel = maxh(ss, n); newel < n; newel++) /// scope
+            for (int newel = 0; newel < n; newel++) /// scope
             {
                 // now check can a topo sort be constructed??
                 bool isValid = true;
@@ -156,7 +152,6 @@ int main()
                 }
                 if (isValid == false)
                 {
-                    assert(peaks[((1 << newel) | ss)] == MATH_INFINITY);
                     continue;
                 }
                 else
@@ -167,7 +162,7 @@ int main()
                     vector<int> newsequence;
                     vector<Ks> newK;
                     int bestvalue = peaks[((1 << newel) | ss)];
-                    for (int idx = minposn + 1; idx <= prevseq.size(); idx++)
+                    for (int idx=prevseq.size(); idx>minposn; idx--)
                     {
                         int value = evaluatesequence(prevseq, prevks, newel, idx, memory, newsequence, newK);
                         if (value < bestvalue)
@@ -181,25 +176,20 @@ int main()
                             newseqsK.push_back(pair(newsequence, newK));
                         }
                     }
-                    // bestbysize[setsize + 1] = min(bestvalue, bestbysize[setsize + 1]);
-                    bestbysize[setsize + 1] = min(bestvalue, bestvalue);
-                    if (bestbysize[setsize + 1] == bestvalue)
+                    if (bestvalue < peaks[((1 << newel) | ss)])
                     {
-                        if (bestvalue < peaks[((1 << newel) | ss)])
+                        peaks[((1 << newel) | ss)] = bestvalue;
+                        sequence[((1 << newel) | ss)].clear();
+                        for (auto newseqK : newseqsK)
                         {
-                            peaks[((1 << newel) | ss)] = bestvalue;
-                            sequence[((1 << newel) | ss)].clear();
-                            for (auto newseqK : newseqsK)
-                            {
-                                sequence[((1 << newel) | ss)].push_back(newseqK);
-                            }
+                            sequence[((1 << newel) | ss)].push_back(newseqK);
                         }
-                        else if (bestvalue == peaks[((1 << newel) | ss)])
+                    }
+                    else if (bestvalue == peaks[((1 << newel) | ss)])
+                    {
+                        for (auto newseqK : newseqsK)
                         {
-                            for (auto newseqK : newseqsK)
-                            {
-                                sequence[((1 << newel) | ss)].push_back(newseqK);
-                            }
+                            sequence[((1 << newel) | ss)].push_back(newseqK);
                         }
                     }
                 }
