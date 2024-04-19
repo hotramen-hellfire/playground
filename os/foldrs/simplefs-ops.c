@@ -5,7 +5,7 @@ void panic(char *msg)
 {
 	printf("%s\n", msg);
 	fflush(stdout);
-	assert(0);
+	sleep(1000);
 	return;//never return
 }
 
@@ -110,7 +110,6 @@ void simplefs_close(int file_handle)
 
 int simplefs_read(int file_handle, char *buf, int nbytes)
 {
-	int retidx=0;
 	if (file_handle<0 || file_handle>=MAX_OPEN_FILES) return -1;
 	if (file_handle_array[file_handle].inode_number<0) return -1;
 	char* middle=(char*)malloc(nbytes);
@@ -125,7 +124,7 @@ int simplefs_read(int file_handle, char *buf, int nbytes)
 		char* blockbuff= (char*)malloc(BLOCKSIZE);
 		int thisblock=p/BLOCKSIZE;
 		if (inodeptr->direct_blocks[thisblock]>-1) simplefs_readDataBlock(inodeptr->direct_blocks[thisblock], blockbuff);
-		else {free(middle); free(inodeptr); panic("jaay bhokat!!"); return -1;}//buff not updated
+		else {free(middle); free(inodeptr); panic("block empty!!"); return -1;}//buff not updated
 		while (retidx<nbytes && thisp!=(thisblock+1)*BLOCKSIZE){
 			middle[retidx]=blockbuff[thisp%BLOCKSIZE];
 			thisp++;
@@ -133,7 +132,7 @@ int simplefs_read(int file_handle, char *buf, int nbytes)
 		}
 		if (retidx==nbytes)
 		{
-			if (thisp!=offset+nbytes) panic("ye kaise hogya bhai!!");;//this must hold otherwise "jaay bhokat!"
+			if (thisp!=offset+nbytes) panic("consitency err simplefs_read!!");;//this must hold otherwise "jaay bhokat!"
 			break;
 		}
 	}
@@ -143,9 +142,7 @@ int simplefs_read(int file_handle, char *buf, int nbytes)
 
 int simplefs_write(int file_handle, char *buf, int nbytes)
 {
-	/*
-		write `nbytes` of data from `buf` to file pointed by `file_handle` starting at current offset
-	*/
+
 	return -1;
 }
 
