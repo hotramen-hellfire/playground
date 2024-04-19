@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "simplefs-disk.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}

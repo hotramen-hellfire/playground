@@ -15,18 +15,6 @@ int main()
     vector<int> pks((1 << n), MATH_INFINITY);//this will contain the peaks of the subsets at any instance, prefix will have this subset
     vector<int> frwd((1 << n), MATH_INFINITY);//this will contain the forwarded memory from this subset to the undecided suffix
     vector<int> outs(n, -1);//this is to avoid calculation of outwards from a single element again and again, this will store the sum going out of any memory  element
-    vector<int> inns(n, -1);//this is the inward memeory, this is computed in the loop below
-    vector<long long>deps(n, 0);//this is the dependency bitset corresponding to every element n
-    for (long long i=0; i<n; i++)//here we calculate deps and inns
-    {
-        int acc=0;
-        for (long long j=0; j<i; j++)
-        {
-            if (memory[n*j+i]>0) deps[i]=(deps[i] | (1<<j));
-            acc+=memory[n*j+i];
-        }
-        inns[i]=acc;
-    }
     pks[0] = 0;
     frwd[0] = 0;
     for (long long thsset = 0; thsset <= (1 << n) - 1; thsset++)
@@ -38,10 +26,25 @@ int main()
         //find a newelement that can be used for the $ of this suffix
         for (long long nwelmnt = 0; nwelmnt < n; nwelmnt++)
         {
+            //check if a valid toposort sort can be constructed??
+            bool istpsortbl = true;
+            int inwd_n = 0;//this is the inward for this element, wil be used later on
             if (((1 << nwelmnt) & thsset) == (1 << nwelmnt))
                 continue; // if it is already present continue
-            bool istpsortbl = ((thsset & deps[nwelmnt]) == deps[nwelmnt]);//use the deps that we constructed
-            //check if a valid toposort sort can be constructed??
+            for (long long clmn = 0; clmn < nwelmnt; clmn++)
+            {
+                if (memory[n * clmn + nwelmnt] > 0)
+                {
+                    if (((1 << clmn) & thsset) == 0)
+                    {
+                        istpsortbl = false;
+                        break;
+                    }
+                    inwd_n += memory[n * clmn + nwelmnt];
+                }
+                if (istpsortbl == false)
+                    break;
+            }
             if (istpsortbl == false)
             {
                 continue;//better luck next time
@@ -51,7 +54,6 @@ int main()
                 // we place this element at the very end of out sequence, given that we had the frwd we can compute the minpeak for this new_set
                 // let frwd_n be the new forward
                 int frwd_n = frwd[thsset];
-                int inwd_n=inns[nwelmnt];
                 frwd_n -= inwd_n;
                 if (outs[nwelmnt] < 0)
                 {
