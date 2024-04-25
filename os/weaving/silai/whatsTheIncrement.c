@@ -18,6 +18,7 @@ int _inc_counter(void)
 			break;
 		}
 		counter--;
+		printf("%lld: %d\n", pthread_self(), counter);
 		// ncounter--;
 		pthread_mutex_unlock(&mutex);
 	}

@@ -19,7 +19,7 @@ for filename in $TESTDIR/*.c; do
     echo "Running testcase $filename: Output stored in $outfile"
     cp $filename testcase.c
     gcc testcase.c simplefs-ops.c simplefs-disk.c
-    # ./a.out > $outfile
+    ./a.out > $outfile
     ./a.out 
     rm -f testcase.c
     rm -f a.out
@@ -36,12 +36,12 @@ for expected in $EXPECTED/*.out; do
     actual=$OUTDIR/$name
     total=$((total+1))
     echo "Comparing $expected and $actual"
-    # diff -w -B $expected $actual
+    diff -w -B $expected $actual
 		if [ "$?" == "0" ]; then
-			# echo "Test Case Passed"
+			echo "Test Case Passed"
 			correct=$((correct+1))
 		else
-			# echo "Test Case Failed"
+			echo "Test Case Failed"
 		fi
 		echo ""
 		echo ""

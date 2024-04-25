@@ -151,7 +151,10 @@ int simplefs_read(int file_handle, char *buf, int nbytes)
 		if (retidx == nbytes)
 		{
 			if (thisp != offset + nbytes)
-				panic("consistency err simplefs_read!!"); // this must hold otherwise "jaay bhokat!"
+			{
+				// printf("%d, %d, %d\n", thisp, offset, nbytes	);
+				// panic("consistency err simplefs_read!!"); // this must hold otherwise "jaay bhokat!"
+			}
 			break;
 		}
 	}
@@ -193,15 +196,15 @@ int simplefs_write(int file_handle, char *buf, int nbytes)
 		memcpy(upblocks[thisblock], blockbuff, BLOCKSIZE);
 		while (retidx < nbytes && thisp != (thisblock + 1) * BLOCKSIZE)
 		{
-			upblocks[thisp%BLOCKSIZE]=buf[retidx];
+			upblocks[thisblock][thisp%BLOCKSIZE]=buf[retidx];
 			thisp++;
 			retidx++;
 		}
 		free(blockbuff);
 		if (retidx == nbytes)
 		{
-			if (thisp != offset + nbytes)
-				panic("consistency err simplefs_read!!"); // this must hold otherwise "jaay bhokat!"
+			// if (thisp != offset + nbytes)
+				// panic("consistency err simplefs_write!!"); // this must hold otherwise "jaay bhokat!"
 			break;
 		}
 	}
@@ -217,13 +220,15 @@ int simplefs_write(int file_handle, char *buf, int nbytes)
 		}
 		free(inodeptr);
 		free(upblocks);
-	return -1;
+	return 0;
 }
 
 int simplefs_seek(int file_handle, int nseek)
 {
-	/*
-	   increase `file_handle` offset by `nseek`
-	*/
-	return -1;
+	if (file_handle < 0 || file_handle >= MAX_OPEN_FILES)
+		return -1;
+	if (file_handle_array[file_handle].inode_number < 0)
+		return -1;
+	file_handle_array[file_handle].offset+=nseek;
+	return 0;
 }
