@@ -9,7 +9,7 @@ DISK NAME: simplefs
 INODE FREELIST:	1	x	x	x	x	x	x	x	
 DATA BLOCK FREELIST:	1	1	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	x	
 INODE 0
-STATUS:	1	NAME	fileabc	SIZE	0	DATABLOCK	0	1	-1	-1	
+STATUS:	1	NAME	fileabc	SIZE	128	DATABLOCK	0	1	-1	-1	
 DATA BLOCK 0: !-----------------------64 Bytes of Data-----------------------!
 DATA BLOCK 1: !-----------------------64 Bytes of Data-----------------------!
 

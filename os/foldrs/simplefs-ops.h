@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "simplefs-disk.h"
+
+// Functions to implement in simplefs-ops.c
 int simplefs_create(char *filename);
 int simplefs_open(char *filename);
 void simplefs_delete (char *filename); 
