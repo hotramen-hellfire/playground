@@ -71,6 +71,13 @@ struct segdesc {
 //  \--- PDX(va) --/ \--- PTX(va) --/
 
 // page directory index
+// Page table/directory entry flags.
+#define PTE_P           0x001   // Present
+#define PTE_W           0x002   // Writeable
+#define PTE_U           0x004   // User
+#define PTE_PS          0x080   // Page Size
+#define PTE_COW         0x800   //COW bit
+
 #define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0x3FF)
 
 // page table index
@@ -90,12 +97,6 @@ struct segdesc {
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
 
-// Page table/directory entry flags.
-#define PTE_P           0x001   // Present
-#define PTE_W           0x002   // Writeable
-#define PTE_U           0x004   // User
-#define PTE_PS          0x080   // Page Size
-#define PTE_COW         0x800   //COW bit
 
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
