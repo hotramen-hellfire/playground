@@ -15,7 +15,7 @@ void *printer(void * dummy)
     struct printerArg* arg  = (struct printerArg*) dummy;
     // sleep(rand());
     srand(pthread_self());
-    uint sleepFor=rand()%10;
+    int sleepFor=rand()%10;
     printf("%d:  I am sleeping for %ds . . .\n", arg->n, sleepFor);
     sleep(sleepFor);
     while (1)

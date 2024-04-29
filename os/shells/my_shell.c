@@ -273,13 +273,6 @@ int looper(struct bg_proc *bg_procs)
 		line[strlen(line)] = '\n'; // terminate with new line
 		tokens = tokenize(line, &bgFlag, &parFlag, &seqFlag);
 		int j = 0;
-		// while (tokens[j] != NULL)
-		// {
-		// 	printf("%s, ", tokens[j]);
-		// 	j++;
-		// }
-		// printf("\n");
-
 		if (strcmp(tokens[0], "exit") == 0)
 		{
 			for (int i = 0; i < MAX_BG_PROCS; i++)
@@ -426,8 +419,6 @@ int looper(struct bg_proc *bg_procs)
 						{
 							tokens[j] = NULL;
 						}
-						// printf("%d, %d\n", i, j);
-						// parsecheck(tokens + i);
 						// do stuff here;
 						int fork_u = fork();
 						if (fork_u == 0)
@@ -518,12 +509,6 @@ int looper(struct bg_proc *bg_procs)
 	}
 	free(tokens);
 }
-
-// void printer()
-// {
-// 	printf("newg;jwng\n");
-// 	return;
-// }
 
 int main(int argc, char *argv[])
 {

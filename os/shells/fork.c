@@ -14,13 +14,8 @@ int main(int argc, char *argv[])
     }
     else if (fork_u == 0)
     {
-        // children block
-        // for (int i = 0; i < argc; i++)
-        // {
-        //     printf("%s\n", argv[i]);
-        // }
+        //children block
         execvp(argv[1], argv + 1);
-        // printf("%d: I am the kid!!\n", getpid());
         exit(0);
     }
     else
