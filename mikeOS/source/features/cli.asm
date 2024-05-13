@@ -4,7 +4,7 @@
 ;
 ; COMMAND LINE INTERFACE
 ; ==================================================================
-%define NUM_JOKES 4
+%define NUM_JOKES 10; see in .data
 
 os_command_line:
 	call os_clear_screen
@@ -577,7 +577,7 @@ exit:
 	bas_extension		db '.BAS', 0
 
 	prompt			db '>_> ', 0
-	help_text		db 'Commands: DIR, COPY, REN, DEL, CAT, SIZE, CLS, HELP, TIME, DATE, VER, EXIT', 13, 10, 0
+	help_text		db 'Commands: DIR, COPY, REN, DEL, CAT, SIZE, CLS, HELP, TELLJOKE, TIME, DATE, VER, EXIT', 13, 10, 0
 	invalid_msg		db 'No such command or program', 13, 10, 0
 	nofilename_msg		db 'No filename or not enough filenames', 13, 10, 0
 	notfound_msg		db 'File not found', 13, 10, 0
@@ -600,11 +600,17 @@ exit:
 
 
 	telljoke_string db 'TELLJOKE', 0
-	joke1_string	db 'Why do people use the internet explorer?- To download firefox. . .', 13, 10, 0
-	joke2_string	db 'Why was the computer cold? - It left its Windows open. . .', 13, 10, 0
-	joke3_string	db 'Why programmers do not like nature? - because it has too many bugs. . .', 13, 10, 0
-	joke4_string	db 'Why do programmers prefer dark mode? - Because light attracts bugs. . .', 13, 10, 0
-	jokes			dw joke1_string, joke2_string, joke3_string, joke4_string
+	joke1_string	db ' Why do people use the internet explorer?- To download firefox. . .', 13, 10, 0
+	joke2_string	db ' Why was the computer cold? - It left its Windows open. . .', 13, 10, 0
+	joke3_string	db ' Why programmers do not like nature? - because it has too many bugs. . .', 13, 10, 0
+	joke4_string	db ' Why do programmers prefer dark mode? - Because light attracts bugs. . .', 13, 10, 0
+	joke5_string	db ' Why do programmers always mix up Halloween and Christmas? - Because Oct 31 equals Dec 25. . .', 13, 10, 0
+	joke6_string	db ' Why was the math book sad? - Because it had too many problems. . .', 13, 10, 0
+	joke7_string	db ' Why do Java developers wear glasses? - Because they cannot C#. . .', 13, 10, 0
+	joke8_string	db ' What do you call a programmer from Finland? - Nerdic. . .', 13, 10, 0
+	joke9_string	db ' How does a computer get drunk? - It takes screenshots. . .', 13, 10, 0
+	joke10_string	db ' Why do programmers prefer iOS development? - Because Android has too much Java. . .', 13, 10, 0
+	jokes			dw joke1_string, joke2_string, joke3_string, joke4_string, joke5_string, joke6_string, joke7_string, joke8_string, joke9_string, joke10_string
 
 	kern_file_string	db 'KERNEL', 0
 	kern_warn_msg		db 'Cannot execute kernel file!', 13, 10, 0
