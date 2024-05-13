@@ -4,7 +4,7 @@
 ;
 ; COMMAND LINE INTERFACE
 ; ==================================================================
-
+%define NUM_JOKES 4
 
 os_command_line:
 	call os_clear_screen
@@ -103,6 +103,10 @@ get_cmd:				; Main processing loop
 	mov di, size_string		; 'SIZE' entered?
 	call os_string_compare
 	jc near size_file
+
+	mov di, telljoke_string	; 'TELLJOKE' entered?
+	call os_string_compare
+	jc near tell_the_joke
 
 
 	; If the user hasn't entered any of the above commands, then we
@@ -279,6 +283,27 @@ print_ver:
 
 kern_warning:
 	mov si, kern_warn_msg
+	call os_print_string
+	jmp get_cmd
+
+
+; ------------------------------------------------------------------
+
+tell_the_joke:
+	;coding pedantically
+	push ax
+	push bx
+	push cx
+	mov ax, 0
+	mov bx, NUM_JOKES
+	call os_get_random
+	mov si, cx
+	pop cx
+	pop bx
+	pop ax
+	imul si, 2
+	add si, jokes
+	mov si, [si]
 	call os_print_string
 	jmp get_cmd
 
@@ -572,6 +597,14 @@ exit:
 	ren_string		db 'REN', 0
 	copy_string		db 'COPY', 0
 	size_string		db 'SIZE', 0
+
+
+	telljoke_string db 'TELLJOKE', 0
+	joke1_string	db 'Why do people use the internet explorer?- To download firefox. . .', 13, 10, 0
+	joke2_string	db 'Why was the computer cold? - It left its Windows open. . .', 13, 10, 0
+	joke3_string	db 'Why programmers do not like nature? - because it has too many bugs. . .', 13, 10, 0
+	joke4_string	db 'Why do programmers prefer dark mode? - Because light attracts bugs. . .', 13, 10, 0
+	jokes			dw joke1_string, joke2_string, joke3_string, joke4_string
 
 	kern_file_string	db 'KERNEL', 0
 	kern_warn_msg		db 'Cannot execute kernel file!', 13, 10, 0
