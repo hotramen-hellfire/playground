@@ -296,6 +296,7 @@ tell_the_joke:
 	push cx
 	mov ax, 0
 	mov bx, NUM_JOKES
+	sub bx, 1
 	call os_get_random
 	mov si, cx
 	pop cx
