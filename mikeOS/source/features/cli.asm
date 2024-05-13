@@ -306,10 +306,29 @@ tell_the_joke:
 	add si, jokes
 	mov si, [si]
 	call os_print_string
+
+	jmp Play_It
+
+	music_note  dw  263
+
+Play_It:
+	mov ax, [music_note]
+	call os_speaker_tone
+
+	mov cx, 1Eh
+	mov dx, 8480h
+	call os_pause
+
+	call os_speaker_off
+
 	jmp get_cmd
 
 
 ; ------------------------------------------------------------------
+
+; Generate "middle C" 261.626 Hz (263 Hz close enough) for 2 secs
+; 2 secs = 2,000,000 uS which is 1E8480h
+
 
 list_directory:
 	mov cx,	0			; Counter
