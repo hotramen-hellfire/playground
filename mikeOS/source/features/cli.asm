@@ -4,8 +4,7 @@
 ;
 ; COMMAND LINE INTERFACE
 ; ==================================================================
-%define NUM_JOKES 10; see in .data
-
+%define NUM_JOKES 10; see in .
 os_command_line:
 	call os_clear_screen
 	mov si, mynameis
@@ -291,6 +290,7 @@ kern_warning:
 
 tell_the_joke:
 	;coding pedantically
+	call FurElise;
 	push ax
 	push bx
 	push cx
@@ -306,28 +306,68 @@ tell_the_joke:
 	add si, jokes
 	mov si, [si]
 	call os_print_string
-
-	jmp Play_It
-
-	music_note  dw  263
-
-Play_It:
-	mov ax, [music_note]
-	call os_speaker_tone
-
-	mov cx, 1Eh
-	mov dx, 8480h
-	call os_pause
-
-	call os_speaker_off
-
 	jmp get_cmd
 
+; ---------------------------------------------------------------
+; Define note frequencies in a standard range
+music_note1  dw  329  ; E note
+music_note2  dw  311  ; Eb (D#) note
+music_note3  dw  329  ; E note
+music_note4  dw  311  ; Eb (D#) note
+music_note5  dw  329  ; E note
+music_note6  dw  247  ; B note
+music_note7  dw  293  ; D note
+music_note8  dw  261  ; C note
+music_note9  dw  220  ; A note
 
-; ------------------------------------------------------------------
+FurElise:
+    mov ax, [music_note1]
+    call os_speaker_tone
+    mov ax, 1
+    call os_pause
 
-; Generate "middle C" 261.626 Hz (263 Hz close enough) for 2 secs
-; 2 secs = 2,000,000 uS which is 1E8480h
+    mov ax, [music_note2]
+    call os_speaker_tone
+    mov ax, 2
+    call os_pause
+
+    mov ax, [music_note3]
+    call os_speaker_tone
+    mov ax, 1
+    call os_pause
+
+    mov ax, [music_note4]
+    call os_speaker_tone
+    mov ax, 2
+    call os_pause
+
+    mov ax, [music_note5]
+    call os_speaker_tone
+    mov ax, 1
+    call os_pause
+
+    mov ax, [music_note6]
+    call os_speaker_tone
+    mov ax, 2
+    call os_pause
+
+    mov ax, [music_note7]
+    call os_speaker_tone
+    mov ax, 2
+    call os_pause
+
+    mov ax, [music_note8]
+    call os_speaker_tone
+    mov ax, 2
+    call os_pause
+
+    mov ax, [music_note9]
+    call os_speaker_tone
+    mov ax, 6
+    call os_pause
+
+    call os_speaker_off
+	ret
 
 
 list_directory:
