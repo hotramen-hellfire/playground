@@ -8,13 +8,10 @@
 
 os_command_line:
 	call os_clear_screen
-
-	mov si, version_msg
+	mov si, mynameis
 	call os_print_string
 	mov si, help_text
 	call os_print_string
-
-
 get_cmd:				; Main processing loop
 	mov di, input			; Clear input buffer each time
 	mov al, 0
@@ -554,16 +551,15 @@ exit:
 	bin_extension		db '.BIN', 0
 	bas_extension		db '.BAS', 0
 
-	prompt			db '> ', 0
+	prompt			db '>_> ', 0
 	help_text		db 'Commands: DIR, COPY, REN, DEL, CAT, SIZE, CLS, HELP, TIME, DATE, VER, EXIT', 13, 10, 0
 	invalid_msg		db 'No such command or program', 13, 10, 0
 	nofilename_msg		db 'No filename or not enough filenames', 13, 10, 0
 	notfound_msg		db 'File not found', 13, 10, 0
 	writefail_msg		db 'Could not write file. Write protected or invalid filename?', 13, 10, 0
 	exists_msg		db 'Target file already exists!', 13, 10, 0
-
+	mynameis 		db 'Hi, my name is, what?', 13, 10, 'My name is, who?', 13, 10,'My name is, chka-chka, Slim Shady. . .', 13, 10, 0
 	version_msg		db 'MikeOS ', MIKEOS_VER, 13, 10, 0
-
 	exit_string		db 'EXIT', 0
 	help_string		db 'HELP', 0
 	cls_string		db 'CLS', 0
